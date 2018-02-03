@@ -521,7 +521,7 @@ void Desk::creataBoss() {
 	this->bossIndex = index;
 	this->currentPlayIndex = index;
 	this->at(this->players[index]->number);
-	this->msg << L"你是否要抢地主";
+	this->msg << L"你是否要抢地主？";
 	this->breakLine();
 }
 
@@ -549,9 +549,12 @@ void Desk::dontBoss(int64_t playerNum)
 		}
 		else {
 			this->msg << L"[CQ:at,qq=" << this->players[index]->number << L"] "
-				<< L"不抢，"
-				<< L"[CQ:at,qq=" << this->players[currentPlayIndex]->number << L"] "
-				<< L"你是否要抢地主";
+				<< L"不抢地主。";
+			this->breakLine();
+			this->msg << L"----------";
+			this->breakLine();
+			this->msg << L"[CQ:at,qq=" << this->players[currentPlayIndex]->number << L"] "
+				<< L"你是否要抢地主？";
 		}
 	}
 }
@@ -561,23 +564,37 @@ void Desk::sendBossCard()
 	Player *playerBoss = players[this->bossIndex];
 
 	this->msg << L"[CQ:at,qq=" << playerBoss->number << L"] "
-		<< L"是地主,底牌是："
+		<< L"是地主，底牌是："
 		<< L"[" << this->cards[53] << L"]"
 		<< L"[" << this->cards[52] << L"]"
-		<< L"[" << this->cards[51] << L"]"
-		<< L"请出牌";
+		<< L"[" << this->cards[51] << L"]。";
+	this->breakLine();
+	this->msg << L"----------";
 	this->breakLine();
 
 	for (int i = 0; i < 3; i++) {
 		playerBoss->card.push_back(cards[53 - i]);
 	}
 	sort(playerBoss->card.begin(), playerBoss->card.end(), Util::compareCard);
-
+	
 	playerBoss->msg << L"你是地主，收到底牌：";
 	for (unsigned m = 0; m < playerBoss->card.size(); m++) {
 		playerBoss->msg << L"[" << playerBoss->card.at(m) << L"]";
 	}
 	playerBoss->breakLine();
+
+	this->msg << L"第" << this->turn + 1 << L"回合：当前剩余牌数量：";
+	this->breakLine();
+	for (unsigned i = 0; i < this->players.size(); i++) {
+		this->msg << i + 1 << L":";
+		this->msg << L"[" << (i == this->bossIndex ? L"地主" : L"农民") << L"]"; //这里删除条件&& state == STATE_GAMEING 
+		this->msg << L"[CQ:at,qq=" << this->players[i]->number << L"]";
+		this->msg << L"：" << static_cast<int>(this->players[i]->card.size());
+		this->breakLine();
+	}
+	this->breakLine();
+	this->msg << L"现在，请地主" << L"[CQ:at, qq = " << playerBoss->number << L"]出牌。";
+	this->breakLine();
 
 	this->state = STATE_SEND_BOSS_CARD;
 
@@ -620,7 +637,9 @@ void Desk::play(vector<wstring> list, int playIndex)
 
 	for (int i = 0; i < cardCount; i++) {
 		if (Util::findAndRemove(mycardTmp, list[i]) == -1) {
-			this->msg << L"你就没有你出的牌，会不会玩？";
+			this->msg << L"[CQ:at,qq=" << this->players[currentPlayIndex]->number << L"] ";
+			this->breakLine();
+			this->msg << L"真丢人，你就没有你要出的牌，会不会玩？";
 			return;
 		}
 	}
@@ -674,8 +693,12 @@ void Desk::play(vector<wstring> list, int playIndex)
 		}
 
 		if (player->card.size() < 3) {
+			this->msg << L"红色警报！";
+			this->breakLine();
 			this->at(player->number);
-			this->msg << L"仅剩下" << player->card.size() << L"张牌";
+			this->msg << L"仅剩下" << player->card.size() << L"张牌！";
+			this->breakLine();
+			this->msg << L"----------";
 			this->breakLine();
 		}
 
@@ -684,13 +707,29 @@ void Desk::play(vector<wstring> list, int playIndex)
 			this->msg << L"[" << this->lastCard.at(m) << L"]";
 		}
 		this->breakLine();
+
 		this->setNextPlayerIndex();
+		this->msg << L"----------";
+		this->breakLine();
+		this->msg << L"第" << this->turn + 1 << L"回合：当前剩余牌数量：";
+		this->breakLine();
+		for (unsigned i = 0; i < this->players.size(); i++) {
+			this->msg << i + 1 << L":";
+			this->msg << L"[" << (i == this->bossIndex && state == STATE_GAMEING ? L"地主" : L"农民") << L"]";
+			this->msg << L"[CQ:at,qq=" << this->players[i]->number << L"]";
+			this->msg << L"：" << static_cast<int>(this->players[i]->card.size());
+			this->breakLine();
+		}
+		this->breakLine();
+		this->msg << L"现在，请";
 		this->at(this->players[this->currentPlayIndex]->number);
-		this->msg << L"请出牌";
+		this->msg << L"出牌";
 		this->breakLine();
 	}
 	else {
-		this->msg << L"别瞎几把出牌";
+		this->at(this->players[this->currentPlayIndex]->number);
+		this->breakLine();
+		this->msg << L"傻逼网友，打的什么几把玩意！学会出牌再打！";
 		this->breakLine();
 	}
 }
@@ -702,7 +741,7 @@ void Desk::discard(int64_t playNum)
 	}
 
 	if (this->currentPlayIndex == this->lastPlayIndex) {
-		this->msg << L"过过过过你妹，会不会玩，你不能过牌了";
+		this->msg << L"过过过过你妹，会不会玩，你不能过牌了，丢人";
 		return;
 	}
 
@@ -714,10 +753,23 @@ void Desk::discard(int64_t playNum)
 	this->breakLine();
 	this->msg << L"上位玩家：过牌";
 	this->breakLine();
-	this->setNextPlayerIndex();
+	this->msg << L"----------";
+	this->breakLine();
 
+	this->setNextPlayerIndex();
+	this->msg << L"第" << this->turn + 1 << L"回合：当前剩余牌数量：";
+	this->breakLine();
+	for (unsigned i = 0; i < this->players.size(); i++) {
+		this->msg << i + 1 << L":";
+		this->msg << L"[" << (i == this->bossIndex && state == STATE_GAMEING ? L"地主" : L"农民") << L"]";
+		this->msg << L"[CQ:at,qq=" << this->players[i]->number << L"]";
+		this->msg << L"：" << static_cast<int>(this->players[i]->card.size());
+		this->breakLine();
+	}
+	this->breakLine();
+	this->msg << L"现在，请";
 	this->at(this->players[this->currentPlayIndex]->number);
-	this->msg << L"请出牌";
+	this->msg << L"出牌";
 	this->breakLine();
 }
 
@@ -761,16 +813,19 @@ void Desk::surrender(int64_t playNum)
 			this->msg << L"[" << this->lastCard.at(m) << L"]";
 		}
 		this->breakLine();
-		this->msg << L"上位玩家：弃牌";
+		this->msg << L"上位玩家：弃牌（认输）";
+		this->breakLine();
+		this->msg << L"----------";
 		this->breakLine();
 		this->setNextPlayerIndex();
+		this->msg << L"现在，请";
 		this->at(this->players[this->currentPlayIndex]->number);
-		this->msg << L"请出牌";
+		this->msg << L"出牌";
 		this->breakLine();
 	}
 	else {
 		this->at(playNum);
-		this->msg << L"弃牌";
+		this->msg << L"弃牌（认输）";
 		this->breakLine();
 	}
 
@@ -810,7 +865,14 @@ void Desk::getPlayerInfo(int64_t playNum)
 void Desk::getScore(int64_t playNum)
 {
 	this->at(playNum);
-	this->msg << (Admin::getScore(playNum) ? L"么么哒给你添加积分啦" : L"又输光想要分？明天来吧");
+	if (Admin::getScore(playNum)) {
+		this->msg << L"这是今天的积分，拿了快玩";
+		this->breakLine();
+		this->msg << L"现在积分：" << Admin::readScore(playNum);
+	}
+	else {
+		this->msg << L"又输光想要分？guna";
+	}
 	this->breakLine();
 }
 
@@ -832,42 +894,42 @@ void Desk::exit(int64_t number)
 		if (index != -1) {
 			vector<Player*>::iterator it = this->players.begin() + index;
 			this->players.erase(it);
-			this->msg << L"退出成功";
+			this->msg << L"退出成功，剩余玩家:" << this->players.size() << L"个，分别是：";
+			this->breakLine();
+			for (unsigned i = 0; i < this->players.size(); i++) {
+				this->msg << i + 1 << L":";
+				this->msg << L"[CQ:at,qq=" << this->players[i]->number << L"]，积分：";
+				this->msg << Admin::readScore(this->players[i]->number);
+				this->breakLine();
+			}
 			this->breakLine();
 		}
 
 	}
 	else {
-		this->msg << L"游戏已经开始不能退出";
+		this->msg << L"游戏已经开始不能退出！";
 		this->breakLine();
 	}
 }
 
 void Desk::commandList()
 {
-	this->msg << L"=    命令列表    =" << "\r\n"
-		<< L"命令说明：" << "\r\n"
-		<< L"         带有[管]的命令 只能管理员使用，使用前必须先绑定自己为管理员，管理员只有重置游戏后能更改(也可以修改配置)" << "\r\n"
-		<< L"         带有[开发中]的命令 还未开发完成" << "\r\n"
-		<< L"         带有[B]的命令 是测试功能，可能会更改和加强" << "\r\n"
-		<< L"         带有[R]的命令 是正式功能，一般不会做更改" << "\r\n"
-		<< L"群聊命令：" << "\r\n"
-		<< L"[R]" << L"上桌：加入游戏\r\n"
-		<< L"[R]" << L"出：出牌 比如 出23456\r\n"
-		<< L"[R]" << L"过|过牌|pass：过牌\r\n"
-		<< L"[R]" << L"抢地主|不抢：是否抢地主\r\n"
-		<< L"[R]" << L"开始游戏：是否开始游戏\r\n"
-		<< L"[R]" << L"下桌：退出游戏，只能在准备环节使用\r\n"
-		<< L"[R]" << L"玩家列表：当前在游戏中得玩家信息\r\n"
-		<< L"[R]" << L"明牌：显示自己的牌给所有玩家，明牌会导致积分翻倍，只能在发完牌后以及出牌之前使用。\r\n"
-		<< L"[R]" << L"弃牌：放弃本局游戏，当地主或者两名农民弃牌游戏结束,弃牌农民玩家赢了不得分，输了双倍扣分" << "\r\n"
-		<< L"[R]" << L"获取积分：获取积分，每天可获取2w分。" << "\r\n"
-		<< L"[B]" << L"我的信息：我的信息" << "\r\n"
-		<< L"私聊命令：" << "\r\n"
-		<< L"[管][B]" << L"我是管理：绑定游戏管理员为当前发送消息的qq，管理员可使用管理命令。管理设置后不能更改" << "\r\n"
-		<< L"[管][B]" << L"重置斗地主：删除所有配置。重置后可重新设定管理员" << "\r\n"
-		<< L"[管][B]" << L"结束游戏[群号]：结束指定群号的游戏，比如：结束游戏123456" << "\r\n"
-		<< L"[管][B]" << L"分配积分[qq号]=[积分]：给指定qq分配积分，如：分配积分123456=500"
+	this->msg << L"------命令列表------" << "\r\n"
+		<< L" 1. 上桌|打牌|JOIN：加入游戏\r\n"
+		<< L" 2. 出|打：出牌 比如 出23456\r\n"
+		<< L" 3. 过(牌)|不要|pass：过牌\r\n"
+		<< L" 4. 抢(地主)|不抢：是否抢地主\r\n"
+		<< L" 5. 开始游戏：是否开始游戏\r\n"
+		<< L" 6. 下桌|不玩了：退出游戏，只能在准备环节使用\r\n"
+		<< L" 7. 玩家列表：当前在游戏中得玩家信息\r\n"
+		<< L" 8. 明牌：显示自己的牌给所有玩家，明牌会导致积分翻倍，只能在发完牌后以及出牌之前使用。\r\n"
+		<< L" 9. 弃牌|认输：放弃本局游戏，当地主或者两名农民弃牌游戏结束，弃牌农民玩家赢了不得分，输了双倍扣分" << "\r\n"
+		<< L"10. 获取积分：获取积分，每天可获取1w分。" << "\r\n"
+		<< L"11. 我的信息：我的信息" << "\r\n"
+		<< L"A1. " << L"我是管理：绑定游戏管理员为当前发送消息的qq，管理员可使用管理命令。管理设置后不能更改" << "\r\n"
+		<< L"A2. " << L"重置斗地主：删除所有配置。重置后可重新设定管理员" << "\r\n"
+		<< L"A3. " << L"结束游戏[群号]：结束指定群号的游戏，比如：结束游戏123456" << "\r\n"
+		<< L"A4. " << L"分配积分[qq号]=[积分]：给指定qq分配积分，如：分配积分123456=500"
 		;
 	this->breakLine();
 }
@@ -930,20 +992,27 @@ void Desk::join(int64_t playNum)
 	int playIndex = this->getPlayer(playNum);
 
 	if (playIndex != -1) {
-		this->msg << L"[CQ:at,qq=" << playNum << L"] 已经加入游戏";
+		this->msg << L"[CQ:at,qq=" << playNum << L"] ";
+		this->breakLine();
+		this->msg << L"你已经加入游戏！";
 		this->breakLine();
 		return;
 	}
 
 	if (this->players.size() == 3) {
-		this->msg << L"[CQ:at,qq=" << playNum << L"] 人数已满";
+		this->msg << L"[CQ:at,qq=" << playNum << L"] ";
+		this->breakLine();
+		this->msg << L"很遗憾，人数已满！";
 		this->breakLine();
 		return;
 	}
 
 	if (Admin::readScore(playNum) < 1) {
-		this->msg << L"[CQ:at,qq=" << playNum << L"] 没积分了你";
+		this->msg << L"[CQ:at,qq=" << playNum << L"] ";
 		this->breakLine();
+		this->msg << L"你的积分仅为可怜的" << Admin::readScore(playNum) << L"，在这里参加斗地主可能太♂弱而受到挫折！";
+		this->breakLine();
+		this->msg << L"请输入[获取积分]领取每日积分或者和管理员py交易！";
 		return;
 	}
 
@@ -951,11 +1020,20 @@ void Desk::join(int64_t playNum)
 	player->number = playNum;
 	this->players.push_back(player);
 
-	this->msg << L"[CQ:at,qq=" << playNum << L"] "
-		<< L"加入成功，已有玩家:" << this->players.size() << L"个";
+	this->msg << L"[CQ:at,qq=" << playNum << L"] ，积分" << Admin::readScore(playNum);
 	this->breakLine();
+	this->msg << L"加入成功，已有玩家：" << this->players.size() << L"个，分别是：";
+	this->breakLine();
+
+	for (unsigned i = 0; i < this->players.size(); i++) {
+		this->msg << i + 1 << L":";
+		this->msg << L"[CQ:at,qq=" << this->players[i]->number << L"]，积分：";
+		this->msg << Admin::readScore(this->players[i]->number);
+		this->breakLine();
+	}
+
 	if (this->players.size() == 3) {
-		this->msg << L"请输入[开始游戏]";
+		this->msg << L"请输入[开始]或[GO]来启动游戏。";
 		this->breakLine();
 	}
 }
@@ -979,6 +1057,8 @@ void Desk::startGame() {
 	if (this->players.size() == 3 && this->state == STATE_WAIT) {
 		this->state = STATE_START;
 		this->msg << L"游戏开始";
+		this->breakLine();
+		this->msg << L"----------";
 		this->breakLine();
 
 		this->listPlayers(1);
@@ -1006,46 +1086,50 @@ bool Desks::game(bool subType, int64_t deskNum, int64_t playNum, const char* msg
 
 	Desk *desk = casino.getOrCreatDesk(deskNum);
 
-	if (msg == L"上桌" || msg == L"JOIN") {
+	if (msg == L"上桌" || msg == L"上座" || msg == L"加入" || msg == L"打牌" || msg == L"JOIN") {
 		desk->join(playNum);
 	}
-	else if (msg.find(L"出") == 0) {//出牌阶段
+	else if (msg.find(L"出") == 0 || msg.find(L"打") == 0) {//出牌阶段
 		desk->play(playNum, msg);
 	}
-	else if (msg == L"过" || msg == L"过牌" || msg == L"不出" || msg == L"要不起" || msg == L"不要" || msg == L"PASS") {//跳过出牌阶段
+	else if (msg == L"过" || msg == L"过牌" || msg == L"不出" || msg == L"不出了" 
+		|| msg == L"没有" || msg == L"打不出" || msg == L"要不起" || msg == L"不要" 
+		|| msg == L"PASS") {//跳过出牌阶段
 		desk->discard(playNum);
 	}
-	else if (msg == L"退出游戏" || msg == L"退桌" || msg == L"下桌") {//结束游戏
+	else if (msg == L"退出游戏" || msg == L"退桌" || msg == L"下桌" 
+		|| msg == L"不玩了" || msg == L"EXIT") {//结束游戏
 		desk->exit(playNum);
 	}
-	else if (msg == L"命令列表") {
+	else if (msg == L"斗地主命令列表" || msg == L"斗地主命令大全") {
 		desk->commandList();
 	}
 	else if (msg == L"玩家列表") {
 		desk->listPlayers(1);
 	}
-	else if (msg == L"开始游戏") {
+	else if (msg == L"开始游戏" || msg == L"开始斗地主" || msg == L"GO" 
+		|| msg == L"开始" || msg == L"启动") {
 		desk->startGame();
 	}
-	else if (msg == L"抢地主" || msg == L"抢") {
+	else if (msg == L"抢地主" || msg == L"抢" || msg == L"要") {
 		desk->getBoss(playNum);
 	}
-	else if (msg == L"不抢") {
+	else if (msg == L"不抢" || msg == L"不要") {
 		desk->dontBoss(playNum);
 	}
-	else if (msg == L"明牌") {
+	else if (msg == L"明牌" || msg == L"我要明牌") {
 		desk->openCard(playNum);
 	}
-	else if (msg == L"弃牌") {
+	else if (msg == L"弃牌" || msg == L"认输" || msg == L"我认输" || msg == L"我要认输") {
 		desk->surrender(playNum);
 	}
 	else if (msg == L"记牌器") {
-		desk->msg << L"未开发完成";
+		desk->msg << L"没做好呢！";
 	}
-	else if (msg == L"我的信息") {
+	else if (msg == L"我的信息" || msg == L"我的积分") {
 		desk->getPlayerInfo(playNum);
 	}
-	else if (msg == L"获取积分") {
+	else if (msg == L"获取积分" || msg == L"给点积分") {
 		desk->getScore(playNum);
 	}
 	else {
@@ -1083,7 +1167,7 @@ bool Desks::game(int64_t playNum, const char * msgArray)
 		return false;
 	}
 
-	msg = result ? L"操作成功" : L"操作失败";
+	msg = result ? L"操作成功，尊贵的管理员" : L"非常抱歉，操作失败";
 	Util::sendPrivateMsg(playNum, Util::wstring2string(msg).data());
 	return true;
 }
