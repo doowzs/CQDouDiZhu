@@ -677,6 +677,7 @@ void Desk::dontMultiple(int64_t playerNum)
 				<< L"²»Òª¼Ó±¶¡£";
 			this->breakLine();
 			this->msg << L"---------------";
+			this->breakLine();
 
 			this->state = STATE_READYTOGO;
 
