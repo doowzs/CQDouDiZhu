@@ -619,20 +619,21 @@ void Desk::multipleChoice() {
 void Desk::getMultiple(int64_t playerNum)
 {
 	this->multiple++;
-
+	
 	int index = this->getPlayer(playerNum);
-
 	if (this->state == STATE_MULTIPLING && this->currentPlayIndex == index) {
-		this->at(this->players[index]->number);
-		this->breakLine();
-		this->msg << L"要加倍。";
-		this->breakLine();
-		this->msg << L"当前积分倍数：" << this->multiple << L"x";
-		this->breakLine();
-		this->msg << L"---------------";
-		this->breakLine();
+
+		this->setNextPlayerIndex();
 
 		if (this->currentPlayIndex == this->bossIndex && bossHasMultipled) {
+			this->msg << L"[CQ:at,qq=" << this->players[index]->number << L"] "
+				<< L"要加倍。";
+			this->breakLine();
+			this->msg << L"当前积分倍数：" << this->multiple << L"x";
+			this->breakLine();
+			this->msg << L"---------------";
+			this->breakLine();
+
 			this->state = STATE_READYTOGO;
 
 			this->msg << L"加倍环节结束，斗地主正式开始。";
@@ -651,17 +652,23 @@ void Desk::getMultiple(int64_t playerNum)
 			this->breakLine();
 			this->msg << L"请地主" << L"[CQ:at, qq = " << this->players[this->bossIndex]->number << L"]先出牌。";
 			this->breakLine();
-			return;
 		}
+		else {
+			bossHasMultipled = true;
 
-		this->setNextPlayerIndex();
-		bossHasMultipled = true;
-
-		this->msg << L"[CQ:at,qq=" << this->players[this->currentPlayIndex]->number << L"] "
-			<< L"你是否要加倍？";
-		this->breakLine();
-		this->msg << L"请用[加(倍)]或[不加(倍)]来回答。";
-		this->breakLine();
+			this->msg << L"[CQ:at,qq=" << this->players[index]->number << L"] "
+				<< L"要加倍。";
+			this->breakLine();
+			this->msg << L"当前积分倍数：" << this->multiple << L"x";
+			this->breakLine();
+			this->msg << L"---------------";
+			this->breakLine();
+			this->msg << L"[CQ:at,qq=" << this->players[currentPlayIndex]->number << L"] "
+				<< L"你是否要加倍？";
+			this->breakLine();
+			this->msg << L"请用[加(倍)]或[不加(倍)]来回答。";
+			this->breakLine();
+		}
 	}
 }
 
