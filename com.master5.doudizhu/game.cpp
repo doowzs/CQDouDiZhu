@@ -814,7 +814,6 @@ void Desk::play(vector<wstring> list, int playIndex)
 		if (mycardTmp.size() == 0) {//Ó®ÁË¡£
 			this->whoIsWinner = this->bossIndex == this->currentPlayIndex ? 1 : 2;
 
-			this->breakLine();
 			this->msg << L"ÓÎÏ·½áÊø";
 			this->breakLine();
 			this->listPlayers(3);
