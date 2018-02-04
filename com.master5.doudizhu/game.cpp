@@ -558,6 +558,9 @@ void Desk::dontBoss(int64_t playerNum)
 
 		if (this->currentPlayIndex == this->bossIndex) {
 			this->sendBossCard();
+			this->state = STATE_MULTIPLING;
+			this->multipleChoice();
+			return;
 		}
 		else {
 			this->msg << L"[CQ:at,qq=" << this->players[index]->number << L"] "
@@ -618,7 +621,7 @@ void Desk::multipleChoice() {
 
 void Desk::getMultiple(int64_t playerNum)
 {
-	this->multiple++;
+	this->multiple += 1;
 	
 	int index = this->getPlayer(playerNum);
 	if (this->state == STATE_MULTIPLING && this->currentPlayIndex == index) {
