@@ -923,7 +923,7 @@ void Desk::surrender(int64_t playNum)
 	int index = this->getPlayer(playNum);
 	if (index == -1 || this->state != STATE_GAMEING || this->players[index]->isSurrender) {
 		this->at(playNum);
-		this->msg << "当前无法弃牌（投降）！如果你是地主，请出牌后再弃牌。";
+		this->msg << L"当前无法弃牌（投降）！如果你是地主，请出牌后再弃牌。";
 		return;
 	}
 
