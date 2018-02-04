@@ -628,35 +628,38 @@ void Desk::getMultiple(int64_t playerNum)
 		this->breakLine();
 		this->msg << L"当前积分倍数：" << this->multiple;
 		this->breakLine();
+		this->msg << L"---------------";
+		this->breakLine();
+
+		if (this->currentPlayIndex == this->bossIndex && bossHasMultipled) {
+			this->state = STATE_READYTOGO;
+
+			this->msg << L"加倍环节结束，斗地主正式开始。";
+			this->breakLine();
+			this->msg << L"---------------";
+			this->breakLine();
+			this->msg << L"第" << this->turn + 1 << L"回合：当前剩余牌数量：";
+			this->breakLine();
+			for (unsigned i = 0; i < this->players.size(); i++) {
+				this->msg << i + 1 << L":";
+				this->msg << L"[" << (i == this->bossIndex ? L"地主" : L"农民") << L"]"; //这里删除条件&& state == STATE_GAMEING 
+				this->msg << L"[CQ:at,qq=" << this->players[i]->number << L"]";
+				this->msg << L"：" << static_cast<int>(this->players[i]->card.size());
+				this->breakLine();
+			}
+			this->breakLine();
+			this->msg << L"请地主" << L"[CQ:at, qq = " << this->players[this->bossIndex]->number << L"]先出牌。";
+			this->breakLine();
+			return;
+		}
 
 		this->setNextPlayerIndex();
 		bossHasMultipled = true;
-		
-		this->msg << L"---------------";
-		this->breakLine();
+
 		this->msg << L"[CQ:at,qq=" << this->players[this->currentPlayIndex]->number << L"] "
 			<< L"你是否要加倍？";
 		this->breakLine();
 		this->msg << L"请用[加(倍)]或[不加(倍)]来回答。";
-		this->breakLine();
-	}
-	if (this->state == STATE_MULTIPLING && this->currentPlayIndex == this->bossIndex) {
-		this->state = STATE_READYTOGO;
-		this->msg << L"加倍环节结束，斗地主正式开始。";
-		this->breakLine();
-		this->msg << L"---------------";
-		this->breakLine();
-		this->msg << L"第" << this->turn + 1 << L"回合：当前剩余牌数量：";
-		this->breakLine();
-		for (unsigned i = 0; i < this->players.size(); i++) {
-			this->msg << i + 1 << L":";
-			this->msg << L"[" << (i == this->bossIndex ? L"地主" : L"农民") << L"]"; //这里删除条件&& state == STATE_GAMEING 
-			this->msg << L"[CQ:at,qq=" << this->players[i]->number << L"]";
-			this->msg << L"：" << static_cast<int>(this->players[i]->card.size());
-			this->breakLine();
-		}
-		this->breakLine();
-		this->msg << L"请地主" << L"[CQ:at, qq = " << this->players[this->bossIndex]->number << L"]先出牌。";
 		this->breakLine();
 	}
 }
@@ -668,8 +671,14 @@ void Desk::dontMultiple(int64_t playerNum)
 
 		this->setNextPlayerIndex();
 
-		if (this->currentPlayIndex == this->bossIndex) {
+		if (this->currentPlayIndex == this->bossIndex && bossHasMultipled) {
+			this->msg << L"[CQ:at,qq=" << this->players[index]->number << L"] "
+				<< L"不要加倍。";
+			this->breakLine();
+			this->msg << L"---------------";
+
 			this->state = STATE_READYTOGO;
+
 			this->msg << L"加倍环节结束，斗地主正式开始。";
 			this->breakLine();
 			this->msg << L"---------------";
@@ -688,6 +697,8 @@ void Desk::dontMultiple(int64_t playerNum)
 			this->breakLine();
 		}
 		else {
+			bossHasMultipled = true;
+
 			this->msg << L"[CQ:at,qq=" << this->players[index]->number << L"] "
 				<< L"不要加倍。";
 			this->breakLine();
