@@ -620,15 +620,17 @@ void Desk::getMultiple(int64_t playerNum)
 	this->multiple++;
 
 	int index = this->getPlayer(playerNum);
-	this->setNextPlayerIndex();
 
-	if (this->state == STATE_MULTIPLING && this->players[index]->number == playerNum) {
+	if (this->state == STATE_MULTIPLING && this->currentPlayIndex == index && !bossHasMultipled) {
 		this->at(this->players[index]->number);
 		this->breakLine();
 		this->msg << L"要加倍。";
 		this->breakLine();
 		this->msg << L"当前积分倍数：" << this->multiple;
 		this->breakLine();
+
+		this->setNextPlayerIndex();
+		bossHasMultipled = true;
 		
 		this->msg << L"---------------";
 		this->breakLine();
@@ -1219,7 +1221,7 @@ Desk* Desks::getOrCreatDesk(int64_t deskNum) {
 void Desk::startGame() {
 	if (this->players.size() == 3 && this->state == STATE_WAIT) {
 		this->state = STATE_START;
-		this->msg << L"游戏开始，下面进入准备环节，准备环节可以进行[明牌]操作，明牌会使积分倍数+1";
+		this->msg << L"游戏开始，下面进入准备环节，准备环节可以进行[明牌]操作，明牌会使积分倍数+2，请谨慎操作";
 		this->breakLine();
 		this->msg << L"---------------";
 		this->breakLine();

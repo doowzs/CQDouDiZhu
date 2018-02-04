@@ -130,6 +130,7 @@ public:
 	void multipleChoice();
 	void getMultiple(int64_t playerNum);
 	void dontMultiple(int64_t playerNum);
+	bool bossHasMultipled = false;
 	void sendBossCard();
 	void play(int64_t playNum, wstring msg);
 	void play(vector<wstring> list, int playIndex);//³öÅÆ
