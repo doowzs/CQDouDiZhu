@@ -770,7 +770,7 @@ void Desk::play(vector<wstring> list, int playIndex)
 		if (type == L"王炸") {
 			this->multiple += 2;
 
-			this->msg << L"出现王炸，积分倍数+2";
+			this->msg << L"打出王炸，积分倍数+2";
 			this->breakLine();
 			this->msg << L"当前积分倍数：" << this->multiple;
 			this->breakLine();
@@ -780,7 +780,7 @@ void Desk::play(vector<wstring> list, int playIndex)
 		else if (type == L"炸弹") {
 			this->multiple += 1;
 
-			this->msg << L"出现炸弹，积分倍数+1";
+			this->msg << L"打出炸弹，积分倍数+1";
 			this->breakLine();
 			this->msg << L"当前积分倍数：" << this->multiple;
 			this->breakLine();
@@ -922,7 +922,7 @@ void Desk::surrender(int64_t playNum)
 	}
 
 	if (this->whoIsWinner > 0) {
-		this->msg << L"游戏结束";
+		this->msg << L"斗地主游戏结束";
 		this->breakLine();
 		this->listPlayers(3);
 
@@ -950,7 +950,7 @@ void Desk::surrender(int64_t playNum)
 	}
 	else {
 		this->at(playNum);
-		this->msg << L"弃牌（认输）";
+		this->msg << L"弃牌（认输）。";
 		this->breakLine();
 	}
 
@@ -971,7 +971,7 @@ void Desk::openCard(int64_t playNum)
 	}
 
 	this->at(playNum);
-	this->msg << L"明牌";
+	this->msg << L"明牌，积分倍数+2。";
 	this->breakLine();
 
 	this->listCardsOnDesk(player);
@@ -997,7 +997,7 @@ void Desk::getScore(int64_t playNum)
 	this->at(playNum);
 	if (Admin::getScore(playNum)) {
 		this->breakLine();
-		this->msg << L"这是今天的1w点积分，祝你早日成为地主！";
+		this->msg << L"这是今天的500点积分，祝你早日成为斗地主专家！";
 		this->breakLine();
 		this->msg << L"你现在的积分总额为" << Admin::readScore(playNum) << L"，";
 		this->msg << L"获取更多积分请明天再来或是和管理员";
@@ -1179,12 +1179,12 @@ void Desk::join(int64_t playNum)
 		this->breakLine();
 	}
 
-	if (Admin::readScore(playNum) < 5000) {
+	if (Admin::readScore(playNum) < 300) {
 		this->msg << "---------------";
 		this->breakLine();
 		this->msg << L"[CQ:at,qq=" << playNum << L"] ";
 		this->breakLine();
-		this->msg << L"你的积分仅为可怜的" << Admin::readScore(playNum) << L"，在这里van游戏可能太♂弱而受到挫折！";
+		this->msg << L"你的积分仅为" << Admin::readScore(playNum) << L"点，在这里van游戏可能太♂弱而受到挫折！";
 		this->breakLine();
 		this->msg << L"请多多练♂习以提高你的牌技！";
 		this->breakLine();

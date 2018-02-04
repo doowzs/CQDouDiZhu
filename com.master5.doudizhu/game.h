@@ -33,8 +33,8 @@ const int STATE_GAMEING = 5;
 const wstring CONFIG_PATH = L".\\app\\com.master5.doudizu\\config.ini";
 const wstring CONFIG_DIR = L".\\app\\com.master5.doudizu\\";
 
-const int CONIFG_INIT_SCORE = 10000;
-const int CONFIG_BOTTOM_SCORE = 1000;
+const int CONIFG_INIT_SCORE = 500;
+const int CONFIG_BOTTOM_SCORE = 50;
 
 const wregex allotReg(L"·ÖÅä»ý·Ö(\\d+)=(\\d+)");
 const wregex numberReg(L"\\d+");
