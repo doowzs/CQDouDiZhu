@@ -900,11 +900,15 @@ void Desk::discard(int64_t playNum)
 	this->breakLine();
 	this->msg << L"上位玩家：过牌";
 	this->breakLine();
+
+	this->setNextPlayerIndex(); 
 	this->msg << L"---------------";
 	this->breakLine();
-
-	this->setNextPlayerIndex();
-	this->msg << L"第" << this->turn + 1 << L"回合：当前剩余牌数量：";
+	this->msg << L"第" << this->turn + 1 << L"回合：";
+	this->breakLine();
+	this->msg << L"当前积分倍数：" << this->multiple << L"x";
+	this->breakLine();
+	this->msg << L"当前剩余牌数量：";
 	this->breakLine();
 	for (unsigned i = 0; i < this->players.size(); i++) {
 		this->msg << i + 1 << L":";
@@ -964,9 +968,23 @@ void Desk::surrender(int64_t playNum)
 		this->breakLine();
 		this->msg << L"上位玩家：弃牌（认输）";
 		this->breakLine();
+
+		this->setNextPlayerIndex(); 
 		this->msg << L"---------------";
 		this->breakLine();
-		this->setNextPlayerIndex();
+		this->msg << L"第" << this->turn + 1 << L"回合：";
+		this->breakLine();
+		this->msg << L"当前积分倍数：" << this->multiple << L"x";
+		this->breakLine();
+		this->msg << L"当前剩余牌数量：";
+		this->breakLine(); 
+		for (unsigned i = 0; i < this->players.size(); i++) {
+			this->msg << i + 1 << L":";
+			this->msg << L"[" << (i == this->bossIndex && state == STATE_GAMEING ? L"地主" : L"农民") << L"]";
+			this->msg << L"[CQ:at,qq=" << this->players[i]->number << L"]";
+			this->msg << L"：" << static_cast<int>(this->players[i]->card.size());
+			this->breakLine();
+		}
 		this->msg << L"现在轮到";
 		this->at(this->players[this->currentPlayIndex]->number);
 		this->msg << L"出牌";
