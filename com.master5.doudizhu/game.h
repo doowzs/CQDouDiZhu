@@ -26,8 +26,9 @@ static const wstring flag[15] = { L"3",L"4",L"5",L"6",L"7",L"8",L"9",L"10",L"J",
 const int STATE_WAIT = 0;
 const int STATE_START = 1;
 const int STATE_BOSSING = 2;
-const int STATE_SEND_BOSS_CARD = 3;
-const int STATE_GAMEING = 4;
+const int STATE_MULTIPLING = 4;
+const int STATE_READYTOGO = 4;
+const int STATE_GAMEING = 5;
 
 const wstring CONFIG_PATH = L".\\app\\com.master5.doudizu\\config.ini";
 const wstring CONFIG_DIR = L".\\app\\com.master5.doudizu\\";
@@ -121,9 +122,14 @@ public:
 
 	void shuffle();//洗牌
 	void deal();//发牌
-	void creataBoss();//抢地主
+	//抢地主
+	void creataBoss();
 	void getBoss(int64_t playerNum);
 	void dontBoss(int64_t playerNum);
+	//抢加倍
+	void multipleChoice();
+	void getMultiple(int64_t playerNum);
+	void dontMultiple(int64_t playerNum);
 	void sendBossCard();
 	void play(int64_t playNum, wstring msg);
 	void play(vector<wstring> list, int playIndex);//出牌
