@@ -222,7 +222,7 @@ void Desk::listPlayers(int type)
 
 	int score = CONFIG_BOTTOM_SCORE* this->multiple;
 	int halfScore = score / 2;
-	this->msg << L"积分倍数：" << this->multiple;
+	this->msg << L"积分倍数：" << this->multiple << L"x";
 	this->breakLine();
 	this->msg << L"出牌次数(不计算过牌)：" << this->turn;
 	this->breakLine();
@@ -591,6 +591,7 @@ void Desk::sendBossCard()
 	sort(playerBoss->card.begin(), playerBoss->card.end(), Util::compareCard);
 
 	playerBoss->msg << L"你是地主，收到底牌：";
+	playerBoss->breakLine();
 	for (unsigned m = 0; m < playerBoss->card.size(); m++) {
 		playerBoss->msg << L"[" << playerBoss->card.at(m) << L"]";
 	}
@@ -621,12 +622,12 @@ void Desk::getMultiple(int64_t playerNum)
 
 	int index = this->getPlayer(playerNum);
 
-	if (this->state == STATE_MULTIPLING && this->currentPlayIndex == index && !bossHasMultipled) {
+	if (this->state == STATE_MULTIPLING && this->currentPlayIndex == index) {
 		this->at(this->players[index]->number);
 		this->breakLine();
 		this->msg << L"要加倍。";
 		this->breakLine();
-		this->msg << L"当前积分倍数：" << this->multiple;
+		this->msg << L"当前积分倍数：" << this->multiple << L"x";
 		this->breakLine();
 		this->msg << L"---------------";
 		this->breakLine();
@@ -783,7 +784,7 @@ void Desk::play(vector<wstring> list, int playIndex)
 
 			this->msg << L"打出王炸，积分倍数+2";
 			this->breakLine();
-			this->msg << L"当前积分倍数：" << this->multiple;
+			this->msg << L"当前积分倍数：" << this->multiple << L"x";
 			this->breakLine();
 			this->msg << L"---------------";
 			this->breakLine();
@@ -793,7 +794,7 @@ void Desk::play(vector<wstring> list, int playIndex)
 
 			this->msg << L"打出炸弹，积分倍数+1";
 			this->breakLine();
-			this->msg << L"当前积分倍数：" << this->multiple;
+			this->msg << L"当前积分倍数：" << this->multiple << L"x";
 			this->breakLine();
 			this->msg << L"---------------";
 			this->breakLine();
@@ -845,7 +846,7 @@ void Desk::play(vector<wstring> list, int playIndex)
 		this->breakLine();
 		this->msg << L"第" << this->turn + 1 << L"回合：";
 		this->breakLine();
-		this->msg << L"当前积分倍数：" << this->multiple;
+		this->msg << L"当前积分倍数：" << this->multiple << L"x";
 		this->breakLine();
 		this->msg << L"当前剩余牌数量：";
 		this->breakLine();
@@ -990,7 +991,7 @@ void Desk::openCard(int64_t playNum)
 
 	this->msg << L"---------------";
 	this->breakLine();
-	this->msg << L"当前积分倍数：" << this->multiple;
+	this->msg << L"当前积分倍数：" << this->multiple << L"x";
 
 
 }
