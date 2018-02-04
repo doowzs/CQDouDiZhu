@@ -634,7 +634,7 @@ void Desk::getMultiple(int64_t playerNum)
 		
 		this->msg << L"---------------";
 		this->breakLine();
-		this->msg << L"[CQ:at,qq=" << this->players[index]->number << L"] "
+		this->msg << L"[CQ:at,qq=" << this->players[this->currentPlayIndex]->number << L"] "
 			<< L"你是否要加倍？";
 		this->breakLine();
 		this->msg << L"请用[加(倍)]或[不加(倍)]来回答。";
