@@ -972,10 +972,14 @@ void Desk::discard(int64_t playNum)
 
 void Desk::surrender(int64_t playNum)
 {
-	int index = this->getPlayer(playNum);
-	if (index == -1 || this->state != STATE_GAMEING || this->players[index]->isSurrender) {
+	int index = this->getPlayer(playNum); 
+	if (index == -1 || this->players[index]->isSurrender) {
+		return;
+	}
+	if (this->state != STATE_GAMEING) {
 		this->at(playNum);
-		this->msg << L"当前无法弃牌（投降）！如果你是地主，请出牌后再弃牌。";
+		this->breakLine();
+		this->msg << L"当前游戏状态无法弃牌（投降）！任意出牌后方可弃牌。";
 		return;
 	}
 
@@ -1054,9 +1058,12 @@ void Desk::surrender(int64_t playNum)
 
 void Desk::openCard(int64_t playNum)
 {
-
 	int index = this->getPlayer(playNum);
-	if (index == -1 || this->state > STATE_READYTOGO || this->state < STATE_START) {
+
+	if (index == -1) {
+		return;
+	}
+	if (this->state > STATE_READYTOGO || this->state < STATE_START) {
 		this->at(playNum);
 		this->breakLine();
 		this->msg << L"明牌只能在准备阶段使用！";
@@ -1094,8 +1101,8 @@ void Desk::getPlayerInfo(int64_t playNum)
 void Desk::getScore(int64_t playNum)
 {
 	this->at(playNum);
+	this->breakLine();
 	if (Admin::getScore(playNum)) {
-		this->breakLine();
 		this->msg << L"这是今天的500点积分，祝你玩♂的开心！";
 		this->breakLine();
 		this->msg << L"你现在的积分总额为" << Admin::readScore(playNum) << L"，";
@@ -1335,12 +1342,19 @@ void Desk::startGame() {
 		if (this->state >= STATE_BOSSING) {
 
 			this->msg << L"已经开始游戏。";
+			this->breakLine();
+			this->listPlayers(1);
 		}
 		else {
 			this->msg << L"没有足够的玩家。";
+			this->breakLine();
+			for (unsigned i = 0; i < this->players.size(); i++) {
+				this->msg << i + 1 << L":";
+				this->msg << L"[CQ:at,qq=" << this->players[i]->number << L"]，积分：";
+				this->msg << Admin::readScore(this->players[i]->number);
+				this->breakLine();
+			}
 		}
-		this->breakLine();
-		this->listPlayers(1);
 	}
 }
 
@@ -1354,7 +1368,10 @@ bool Desks::game(bool subType, int64_t deskNum, int64_t playNum, const char* msg
 
 	Desk *desk = casino.getOrCreatDesk(deskNum);
 
-	if (msg.find(L"上桌") == 0 || msg.find(L"上座") == 0 || msg.find(L"加入") == 0 
+	if (msg.find(L"斗地主版本") == 0) {
+		desk->msg << L"服务器版本：201802052008";
+	}
+	else if (msg.find(L"上桌") == 0 || msg.find(L"上座") == 0
 		|| msg.find(L"打牌") == 0) {
 		desk->join(playNum);
 	}
@@ -1368,7 +1385,7 @@ bool Desks::game(bool subType, int64_t deskNum, int64_t playNum, const char* msg
 		|| msg.find(L"不要") == 0 || msg.find(L"PASS") == 0)) {//跳过出牌阶段
 		desk->discard(playNum);
 	}
-	else if (msg.find(L"退出游戏") == 0 || msg.find(L"退桌") == 0 || msg.find(L"下桌") == 0
+	else if (msg.find(L"退桌") == 0 || msg.find(L"下桌") == 0
 		|| msg.find(L"不玩了") == 0) {//结束游戏
 		desk->exit(playNum);
 	}
@@ -1396,7 +1413,8 @@ bool Desks::game(bool subType, int64_t deskNum, int64_t playNum, const char* msg
 	else if (msg.find(L"明牌") == 0) {
 		desk->openCard(playNum);
 	}
-	else if (msg.find(L"弃牌") == 0 || msg.find(L"认输") == 0) {
+	else if ((msg.find(L"弃牌") == 0 || msg.find(L"认输") == 0)
+		&& desk->state >= STATE_BOSSING) {
 		desk->surrender(playNum);
 	}
 	else if (msg == L"记牌器") {
