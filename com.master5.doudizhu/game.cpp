@@ -1301,7 +1301,7 @@ void Desk::join(int64_t playNum)
 	if (this->players.size() == 3) {
 		this->breakLine();
 		this->msg << L"人数已满，";
-		this->msg << L"请输入[开始]或[GO]来启动游戏。";
+		this->msg << L"请输入[启动]或[GO]来启动游戏。";
 		this->breakLine();
 	}
 }
@@ -1395,7 +1395,7 @@ bool Desks::game(bool subType, int64_t deskNum, int64_t playNum, const char* msg
 	else if (msg == L"玩家列表") {
 		desk->listPlayers(1);
 	}
-	else if (msg.find(L"GO") == 0 || msg.find(L"开始") == 0 || msg.find(L"启动") == 0) {
+	else if (msg.find(L"GO") == 0 || msg.find(L"启动") == 0) {
 		desk->startGame();
 	}
 	else if ((msg.find(L"抢") == 0 || msg.find(L"要") == 0) && desk->state == STATE_BOSSING) {
