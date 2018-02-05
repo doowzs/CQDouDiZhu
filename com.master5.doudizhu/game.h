@@ -109,6 +109,9 @@ public:
 	int currentPlayIndex;//该谁出牌
 	int bossIndex;//谁是地主
 
+	int bossCount;//记录出牌次数，检测春天
+	int farmCount;
+
 	vector<wstring> lastCard;//上位玩家的牌
 	wstring lastCardType;//上位玩家得牌类
 	vector<int> *lastWeights;//上位玩家的牌的权重

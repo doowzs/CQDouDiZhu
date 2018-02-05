@@ -104,7 +104,6 @@ int Util::find(vector<wstring> &dest, wstring str) {
 
 int Util::findFlag(wstring str)
 {
-
 	for (int i = 0; i < 15; i++) {
 		if (flag[i] == str) {
 			return i;
@@ -163,6 +162,9 @@ Desk::Desk() {
 	this->lastPlayIndex = -1;//当前谁出得牌
 	this->currentPlayIndex = -1;//该谁出牌
 	this->bossIndex = -1;//谁是地主
+
+	this->bossCount = 0;
+	this->farmCount = 0;
 
 	vector<wstring> lastCard;//上位玩家的牌
 	this->lastCardType = L"";//上位玩家得牌类
@@ -419,9 +421,18 @@ wstring Desk::getMycardType(vector<wstring> list, vector<int> *weights)
 		return L"连对";
 	}
 
+	bool no2InCards = true;
+
+	for (int i = 0; i < cardGroupCout; i++) {
+		if (cards[cardGroupCout] == L"2") {
+			no2InCards = false;
+		}
+	}
+
 	if (cardGroupCout > 4 && max == 1 && min == 1
 		&& Util::findFlag(cards[0]) == Util::findFlag(cards[cardGroupCout - 1]) - cardGroupCout + 1
 		&& Util::findFlag(cards[cardGroupCout - 1]) < 13
+		&& no2InCards //三人斗地主顺子不能带2
 		) {//顺子
 		for (unsigned i = 0; i < tmpCount.size(); i++) {
 			int tmp = tmpCount[i];
@@ -529,7 +540,7 @@ void Desk::creataBoss() {
 	this->breakLine();
 	this->msg << L"你是否要抢地主？";
 	this->breakLine();
-	this->msg << L"请用[抢(地主)]或[不抢(地主)]来回答。";
+	this->msg << L"请用[抢(地主)]或[不(抢地主)]来回答。";
 	this->breakLine();
 }
 
@@ -542,11 +553,11 @@ void Desk::getBoss(int64_t playerNum)
 		this->currentPlayIndex = index;
 		this->lastPlayIndex = index;
 		sendBossCard();
-	}
 
-	//进入加倍环节
-	this->state = STATE_MULTIPLING;
-	this->multipleChoice();
+		//进入加倍环节
+		this->state = STATE_MULTIPLING;
+		this->multipleChoice();
+	}
 }
 
 void Desk::dontBoss(int64_t playerNum)
@@ -570,6 +581,9 @@ void Desk::dontBoss(int64_t playerNum)
 			this->breakLine();
 			this->msg << L"[CQ:at,qq=" << this->players[currentPlayIndex]->number << L"] "
 				<< L"你是否要抢地主？";
+			this->breakLine();
+			this->msg << L"请用[抢(地主)]或[不(抢地主)]来回答。";
+			this->breakLine();
 		}
 	}
 }
@@ -580,7 +594,6 @@ void Desk::sendBossCard()
 
 	this->msg << L"[CQ:at,qq=" << playerBoss->number << L"] "
 		<< L"是地主，底牌是：";
-	this->breakLine();
 	this->msg << L"[" << this->cards[53] << L"]"
 		<< L"[" << this->cards[52] << L"]"
 		<< L"[" << this->cards[51] << L"]。";
@@ -601,7 +614,6 @@ void Desk::sendBossCard()
 	playerBoss->breakLine();
 
 	//这里的状态声明移动到了加倍(dontMultiple)的最后一个人语句哪里。
-
 }
 
 void Desk::multipleChoice() {
@@ -615,7 +627,7 @@ void Desk::multipleChoice() {
 	this->breakLine();
 	this->msg << L"你是否要加倍？";
 	this->breakLine();
-	this->msg << L"请用[加(倍)]或[不加(倍)]来回答。";
+	this->msg << L"请用[加(倍)]或[不(加倍)]来回答。";
 	this->breakLine();
 }
 
@@ -769,6 +781,14 @@ void Desk::play(vector<wstring> list, int playIndex)
 		}
 	}
 
+	//处理出牌次数
+	if (currentPlayIndex == this->bossIndex) {
+		this->bossCount++;
+	}
+	else {
+		this->farmCount++;
+	}
+
 	vector<int> *weights = new vector<int>;
 
 	wstring type = this->getMycardType(list, weights);
@@ -814,11 +834,38 @@ void Desk::play(vector<wstring> list, int playIndex)
 		if (mycardTmp.size() == 0) {//赢了。
 			this->whoIsWinner = this->bossIndex == this->currentPlayIndex ? 1 : 2;
 
-			this->msg << L"游戏结束";
+
+			this->msg << L"斗地主游戏结束，";
+			this->msg << (this->whoIsWinner == 1 ? L"地主赢了" : L"农民赢了");
+			this->breakLine();
+
+
+			if (this->farmCount == 0 && this->whoIsWinner == 1) {
+				this->multiple *= 2;
+				this->msg << L"---------------";
+				this->breakLine();
+				this->msg << L"本局出现春天，积分倍数x2";
+				this->breakLine();
+				this->msg << L"当前积分倍数：" << this->multiple << L"x";
+				this->breakLine();
+			}
+			else if (this->bossCount == 1 && this->whoIsWinner == 2) {
+				this->multiple *= 2;
+				this->msg << L"---------------";
+				this->breakLine();
+				this->msg << L"本局出现反春天，积分倍数x2";
+				this->breakLine();
+				this->msg << L"当前积分倍数：" << this->multiple << L"x";
+				this->breakLine();
+			}
+
+
+			this->msg << L"---------------";
+			this->breakLine();
+			this->msg << L"分数结算：";
 			this->breakLine();
 			this->listPlayers(3);
 
-			this->msg << (this->whoIsWinner == 1 ? L"地主赢了" : L"农民赢了");
 			casino.gameOver(this->number);
 			return;
 		}
@@ -947,13 +994,21 @@ void Desk::surrender(int64_t playNum)
 			}
 		}
 	}
+	
 
 	if (this->whoIsWinner > 0) {
-		this->msg << L"斗地主游戏结束";
+		this->msg << L"斗地主游戏结束，";
+		this->msg << (this->whoIsWinner == 1 ? L"地主赢了" : L"农民赢了");
+		this->breakLine();
+
+		//弃牌不检测春天
+
+		this->msg << L"---------------";
+		this->breakLine(); 
+		this->msg << L"分数结算：";
 		this->breakLine();
 		this->listPlayers(3);
 
-		this->msg << (this->whoIsWinner == 1 ? L"地主赢了" : L"农民赢了");
 		casino.gameOver(this->number);
 		return;
 	}
@@ -1002,6 +1057,9 @@ void Desk::openCard(int64_t playNum)
 
 	int index = this->getPlayer(playNum);
 	if (index == -1 || this->state > STATE_READYTOGO || this->state < STATE_START) {
+		this->at(playNum);
+		this->breakLine();
+		this->msg << L"明牌只能在准备阶段使用！";
 		return;
 	}
 	Player *player = this->players[index];
@@ -1038,7 +1096,7 @@ void Desk::getScore(int64_t playNum)
 	this->at(playNum);
 	if (Admin::getScore(playNum)) {
 		this->breakLine();
-		this->msg << L"这是今天的500点积分，祝你早日成为斗地主专家！";
+		this->msg << L"这是今天的500点积分，祝你玩♂的开心！";
 		this->breakLine();
 		this->msg << L"你现在的积分总额为" << Admin::readScore(playNum) << L"，";
 		this->msg << L"获取更多积分请明天再来或是和管理员";
@@ -1063,7 +1121,7 @@ void Desks::gameOver(int64_t number)
 	}
 	vector<Desk*>::iterator it = casino.desks.begin() + index;
 	casino.desks.erase(it);
-	Util::sendGroupMsg(number, "游戏结束");
+	//Util::sendGroupMsg(number, "游戏结束");
 }
 
 void Desk::exit(int64_t number)
@@ -1230,8 +1288,6 @@ void Desk::join(int64_t playNum)
 		this->breakLine();
 		this->msg << L"请多多练♂习以提高你的牌技！";
 		this->breakLine();
-		this->msg << "---------------";
-		this->breakLine();
 	}
 	
 
@@ -1276,7 +1332,13 @@ void Desk::startGame() {
 		this->creataBoss();
 	}
 	else {
-		this->msg << L"没有足够的玩家或者已经开始游戏。";
+		if (this->state >= STATE_BOSSING) {
+
+			this->msg << L"已经开始游戏。";
+		}
+		else {
+			this->msg << L"没有足够的玩家。";
+		}
 		this->breakLine();
 		this->listPlayers(1);
 	}
@@ -1296,12 +1358,14 @@ bool Desks::game(bool subType, int64_t deskNum, int64_t playNum, const char* msg
 		|| msg.find(L"打牌") == 0) {
 		desk->join(playNum);
 	}
-	else if (msg.find(L"出") == 0 || msg.find(L"打") == 0) {//出牌阶段
+	else if ((desk->state >= STATE_READYTOGO) &&
+		(msg.find(L"出") == 0 || msg.find(L"打") == 0)) {//出牌阶段
 		desk->play(playNum, msg);
 	}
-	else if (msg.find(L"过") == 0 || msg.find(L"过牌") == 0 || msg.find(L"不出") == 0 
+	else if ((desk->state >= STATE_READYTOGO) && 
+		(msg.find(L"过") == 0 || msg.find(L"过牌") == 0 || msg.find(L"不出") == 0
 		|| msg.find(L"没有") == 0 || msg.find(L"打不出") == 0 || msg.find(L"要不起") == 0
-		|| msg.find(L"不要") == 0 || msg.find(L"PASS") == 0) {//跳过出牌阶段
+		|| msg.find(L"不要") == 0 || msg.find(L"PASS") == 0)) {//跳过出牌阶段
 		desk->discard(playNum);
 	}
 	else if (msg.find(L"退出游戏") == 0 || msg.find(L"退桌") == 0 || msg.find(L"下桌") == 0
@@ -1317,16 +1381,16 @@ bool Desks::game(bool subType, int64_t deskNum, int64_t playNum, const char* msg
 	else if (msg.find(L"GO") == 0 || msg.find(L"开始") == 0 || msg.find(L"启动") == 0) {
 		desk->startGame();
 	}
-	else if (msg.find(L"抢") == 0 || msg.find(L"要") == 0) {
+	else if ((msg.find(L"抢") == 0 || msg.find(L"要") == 0) && desk->state == STATE_BOSSING) {
 		desk->getBoss(playNum);
 	}
-	else if (msg.find(L"不抢") == 0 || msg.find(L"不要") == 0) {
+	else if (msg.find(L"不") == 0 && desk->state == STATE_BOSSING) {
 		desk->dontBoss(playNum);
 	}
-	else if (msg.find(L"加") == 0) {
+	else if (msg.find(L"加") == 0 && desk->state == STATE_MULTIPLING) {
 		desk->getMultiple(playNum);
 	}
-	else if (msg.find(L"不加") == 0) {
+	else if (msg.find(L"不") == 0 && desk->state == STATE_MULTIPLING) {
 		desk->dontMultiple(playNum);
 	}
 	else if (msg.find(L"明牌") == 0) {
