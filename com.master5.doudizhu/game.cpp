@@ -64,7 +64,7 @@ bool Desks::game(bool subType, int64_t deskNum, int64_t playNum, const char* msg
 	Desk *desk = casino.getOrCreatDesk(deskNum);
 
 	if (msg.find(L"¶·µØÖ÷°æ±¾") == 0) {
-		desk->msg << L"²âÊÔ°æ 201802060005";
+		desk->msg << L"²âÊÔ°æ 201802060010";
 	}
 	else if (msg.find(L"ÉÏ×À") == 0 || msg.find(L"ÉÏ×ù") == 0
 		|| msg.find(L"´òÅÆ") == 0) {

@@ -26,8 +26,8 @@ static const int STATE_MULTIPLING = 4;
 static const int STATE_READYTOGO = 4;
 static const int STATE_GAMEING = 5;
 
-static const wstring CONFIG_PATH = L".\\app\\com.auntspecial.doudizu\\config.ini";
-static const wstring CONFIG_DIR = L".\\app\\com.auntspecial.doudizu\\";
+static const wstring CONFIG_PATH = L".\\app\\com.auntspecial.doudizhu\\config.ini";
+static const wstring CONFIG_DIR = L".\\app\\com.auntspecial.doudizhu\\";
 
 static const int CONIFG_INIT_SCORE = 500;
 static const int CONFIG_BOTTOM_SCORE = 50;
