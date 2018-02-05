@@ -13,7 +13,8 @@
 #include <algorithm>
 #include <iostream>
 #include <sstream>
-#include "game.h"
+
+#include "landlords_classes.h"
 
 using namespace std;
 

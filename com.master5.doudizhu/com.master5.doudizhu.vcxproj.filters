@@ -33,7 +33,22 @@
     <ClInclude Include="QTool.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="game.h">
+    <ClInclude Include="landlords_Admin.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="landlords_Player.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="landlords_Util.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="landlords_Desks.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="landlords_Watcher.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="landlords_classes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

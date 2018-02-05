@@ -80,13 +80,18 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="landlords_Admin.h" />
     <ClInclude Include="appmain.h" />
     <ClInclude Include="cqp.h" />
-    <ClInclude Include="game.h" />
+    <ClInclude Include="landlords_classes.h" />
+    <ClInclude Include="landlords_Desks.h" />
+    <ClInclude Include="landlords_Player.h" />
+    <ClInclude Include="landlords_Watcher.h" />
     <ClInclude Include="QTool.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
+    <ClInclude Include="landlords_Util.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="appmain.cpp" />

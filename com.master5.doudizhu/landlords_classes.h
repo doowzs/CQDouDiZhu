@@ -1,10 +1,5 @@
+#pragma once
 
-#include "stdafx.h"
-#include "string"
-#ifdef _DEBUG 
-#else
-#include "cqp.h"
-#endif 
 #include <time.h>
 #include <vector>
 #include <algorithm>
@@ -13,6 +8,7 @@
 #include <tchar.h>  
 #include <regex> 
 using namespace std;
+
 static const wstring  cardDest[54] = {
 	L"鬼",L"王",
 	L"2",L"3",L"4",L"5",L"6",L"7",L"8",L"9",L"10",L"J",L"Q",L"K",L"A",
@@ -23,21 +19,21 @@ static const wstring  cardDest[54] = {
 
 static const wstring flag[15] = { L"3",L"4",L"5",L"6",L"7",L"8",L"9",L"10",L"J",L"Q",L"K",L"A",L"2",L"鬼",L"王" };
 
-const int STATE_WAIT = 0;
-const int STATE_START = 1;
-const int STATE_BOSSING = 2;
-const int STATE_MULTIPLING = 4;
-const int STATE_READYTOGO = 4;
-const int STATE_GAMEING = 5;
+static const int STATE_WAIT = 0;
+static const int STATE_START = 1;
+static const int STATE_BOSSING = 2;
+static const int STATE_MULTIPLING = 4;
+static const int STATE_READYTOGO = 4;
+static const int STATE_GAMEING = 5;
 
-const wstring CONFIG_PATH = L".\\app\\com.master5.doudizu\\config.ini";
-const wstring CONFIG_DIR = L".\\app\\com.master5.doudizu\\";
+static const wstring CONFIG_PATH = L".\\app\\com.auntspecial.doudizu\\config.ini";
+static const wstring CONFIG_DIR = L".\\app\\com.auntspecial.doudizu\\";
 
-const int CONIFG_INIT_SCORE = 500;
-const int CONFIG_BOTTOM_SCORE = 50;
+static const int CONIFG_INIT_SCORE = 500;
+static const int CONFIG_BOTTOM_SCORE = 50;
 
-const wregex allotReg(L"分配积分(\\d+)=(\\d+)");
-const wregex numberReg(L"\\d+");
+static const wregex allotReg(L"分配积分(\\d+)=(\\d+)");
+static const wregex numberReg(L"\\d+");
 
 class Util {
 public:
@@ -59,6 +55,7 @@ public:
 	static wstring string2wstring(string str);
 	static void mkdir();
 };
+
 class Admin {
 public:
 	static wstring readString();
@@ -76,6 +73,7 @@ private:
 	static bool writeScore(int64_t playerNum, int64_t score);
 };
 
+//部分关于player的函数定义在Desks中
 class Player
 {
 public:
@@ -91,7 +89,17 @@ public:
 	void breakLine();
 };
 
-
+//部分关于watcher的函数定义在Desks中
+class Watcher
+{
+public:
+	Watcher();
+	wstringstream msg;
+	int64_t number;
+	void sendMsg();
+	void breakLine();
+	void at(int64_t playNum);
+};
 
 class Desk {
 public:
@@ -102,6 +110,7 @@ public:
 	wstring cards[54];
 	int64_t number;
 	vector<Player*> players;
+	vector<Watcher*> watchers;//观察者队列
 
 	int whoIsWinner;
 	int state;
@@ -125,7 +134,7 @@ public:
 
 	void shuffle();//洗牌
 	void deal();//发牌
-	//抢地主
+				//抢地主
 	void creataBoss();
 	void getBoss(int64_t playerNum);
 	void dontBoss(int64_t playerNum);
@@ -153,17 +162,27 @@ public:
 	wstring getMycardType(vector<wstring> list, vector<int> *Weights);
 	void sendMsg(bool subType);
 	void sendPlayerMsg();
+	void sendWatcherMsg();
 	void listCardsOnDesk(Player* player);
 
+	void joinWatching(int64_t playNum);
+	void exitWatching(int64_t playNum);
+	void sendWatchingMsg_Start();
+	void sendWatchingMsg_Play();
+	void sendWatchingMsg_Surrender(int64_t playNum);
+	void sendWatchingMsg_Pass(int64_t playNum);
+	int getWatcher(int64_t number);//按qq号获得玩家得索引
 };
 
 class Desks {
 public:
 	vector<Desk*> desks;
 	Desk* getOrCreatDesk(int64_t deskNum);
-	static bool game(bool subType,int64_t deskNum, int64_t playNum, const char *msg);
+	static bool game(bool subType, int64_t deskNum, int64_t playNum, const char *msg);
 	static bool game(int64_t playNum, const char *msg);
 	int getDesk(int64_t deskNum);
 	void gameOver(int64_t deskNum);
 	void listDesks();
 };
+
+static Desks casino;
