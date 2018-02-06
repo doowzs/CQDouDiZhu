@@ -30,9 +30,11 @@ static const wstring CONFIG_PATH = L".\\app\\com.auntspecial.doudizhu\\config.in
 static const wstring CONFIG_DIR = L".\\app\\com.auntspecial.doudizhu\\";
 
 static const int CONIFG_INIT_SCORE = 200;
-static const int CONFIG_BOTTOM_SCORE = 50;
+static const int CONFIG_BOTTOM_SCORE = 3;
+static const int CONFIG_PLAY_BONUS = 0;
+static const int CONFIG_SURRENDER_PENALTY = 50;
 
-static const wregex allotReg(L"分配积分(\\d+)=(\\d+)");
+static const wregex allotReg(L"设置积分(\\d+)=(\\d+)");
 static const wregex numberReg(L"\\d+");
 
 class Util {
@@ -65,12 +67,20 @@ public:
 	static bool writeAdmin(int64_t playerNum);
 	static bool getScore(int64_t playerNum);
 	static bool addScore(int64_t playerNum, int score);
+
+	static int64_t readWin(int64_t playerNum);
+	static int64_t readLose(int64_t playerNum);
+	static bool addWin(int64_t playerNum);
+	static bool addLose(int64_t playerNum);
+
 	static bool IAmAdmin(int64_t playerNum);
 	static bool resetGame(int64_t playNum);
 	static bool allotScoreTo(wstring msg, int64_t playNum);
 	static bool gameOver(wstring msg, int64_t playNum);
 private:
 	static bool writeScore(int64_t playerNum, int64_t score);
+	static bool writeWin(int64_t playerNum, int64_t score);
+	static bool writeLose(int64_t playerNum, int64_t score);
 };
 
 //部分关于player的函数定义在Desks中
@@ -106,17 +116,20 @@ public:
 
 	Desk();
 	int multiple;
+	int basic;
 	int turn;
+	int64_t lastTime;
 	wstring cards[54];
 	int64_t number;
 	vector<Player*> players;
-	vector<Watcher*> watchers;//观察者队列
+	vector<Watcher*> watchers;	//观察者队列
 
 	int whoIsWinner;
 	int state;
-	int lastPlayIndex;//当前谁出得牌
-	int currentPlayIndex;//该谁出牌
-	int bossIndex;//谁是地主
+	int lastPlayIndex;	//当前谁出得牌
+	int currentPlayIndex;	//该谁出牌
+	int bossIndex;	//谁是地主
+	bool isSecondCallForBoss;	//第二次叫地主
 
 	int bossCount;//记录出牌次数，检测春天
 	int farmCount;
@@ -153,6 +166,9 @@ public:
 	void getPlayerInfo(int64_t playNum);
 	void getScore(int64_t playNum);
 
+	static int64_t readScore(int64_t playerNum);
+	void readSendScore(int64_t playNum);
+
 	void at(int64_t playNum);
 	void breakLine();
 	int getPlayer(int64_t number);//按qq号获得玩家得索引
@@ -174,6 +190,8 @@ public:
 	void sendWatchingMsg_Over();
 	void sendWatchingMsg_Pass(int64_t playNum);
 	int getWatcher(int64_t number);//按qq号获得玩家得索引
+
+	void AFKHandle(int64_t playNum);
 };
 
 class Desks {

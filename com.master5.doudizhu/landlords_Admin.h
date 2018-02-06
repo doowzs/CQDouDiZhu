@@ -31,8 +31,6 @@ wstring Admin::readString() {
 
 bool Admin::allotScoreTo(wstring msg, int64_t playNum)
 {
-
-
 	int score;
 	int64_t playerNum;
 
@@ -87,7 +85,10 @@ int64_t Admin::readScore(int64_t playerNum)
 	ss << playerNum;
 	wstring key = ss.str();
 	ss.str(L"");
-	return GetPrivateProfileInt(model.c_str(), key.c_str(), 0, CONFIG_PATH.c_str());
+
+	//增加负分功能，最低值负5亿分，第三个参数是未找到时返回的默认值。
+	//负分直接输出有bug，所以输出需要使用desk中的readScore函数。
+	return GetPrivateProfileInt(model.c_str(), key.c_str(), 500000000, CONFIG_PATH.c_str());
 }
 
 bool Admin::getScore(int64_t playerNum)
@@ -124,10 +125,74 @@ bool Admin::writeScore(int64_t playerNum, int64_t score)
 	return WritePrivateProfileString(model.c_str(), key.c_str(), value.c_str(), CONFIG_PATH.c_str());
 }
 
-bool Admin::addScore(int64_t playerNum, int score)
+bool Admin::addScore(int64_t playerNum, int score) {
+	int64_t hasScore = Admin::readScore(playerNum); //这里使用desk里的函数
+	hasScore += score;
+	if (hasScore < 0) {
+		hasScore = 0;
+	}
+	else if (hasScore > 1000000000) {
+		hasScore = 1000000000;
+	}
+	return  Admin::writeScore(playerNum, hasScore);
+}
+
+int64_t Admin::readWin(int64_t playerNum)
 {
-	int64_t hasScore = Admin::readScore(playerNum) + score;
-	return  Admin::writeScore(playerNum, hasScore < 0 ? 0 : hasScore);
+	wstring model = L"win";
+	wstringstream ss;
+	ss << playerNum;
+	wstring key = ss.str();
+	ss.str(L"");
+	return GetPrivateProfileInt(model.c_str(), key.c_str(), 0, CONFIG_PATH.c_str());
+}
+
+int64_t Admin::readLose(int64_t playerNum)
+{
+	wstring model = L"lose";
+	wstringstream ss;
+	ss << playerNum;
+	wstring key = ss.str();
+	ss.str(L"");
+	return GetPrivateProfileInt(model.c_str(), key.c_str(), 0, CONFIG_PATH.c_str());
+}
+
+bool Admin::writeWin(int64_t playerNum, int64_t win)
+{
+	wstring model = L"win";
+	wstringstream ss;
+	ss << playerNum;
+	wstring key = ss.str();
+	ss.str(L"");
+	ss << win;
+	wstring value = ss.str();
+	ss.str(L"");
+	return WritePrivateProfileString(model.c_str(), key.c_str(), value.c_str(), CONFIG_PATH.c_str());
+}
+
+bool Admin::writeLose(int64_t playerNum, int64_t lose)
+{
+	wstring model = L"lose";
+	wstringstream ss;
+	ss << playerNum;
+	wstring key = ss.str();
+	ss.str(L"");
+	ss << lose;
+	wstring value = ss.str();
+	ss.str(L"");
+	return WritePrivateProfileString(model.c_str(), key.c_str(), value.c_str(), CONFIG_PATH.c_str());
+}
+
+bool Admin::addWin(int64_t playerNum)
+{
+	int64_t hasWin = Admin::readWin(playerNum) + 1;
+	return  Admin::writeWin(playerNum, hasWin);
+}
+
+bool Admin::addLose(int64_t playerNum)
+{
+	int64_t hasLose = Admin::readLose(playerNum) + 1;
+	return  Admin::writeLose(playerNum, hasLose);
 }
 
 bool Admin::IAmAdmin(int64_t playerNum)
