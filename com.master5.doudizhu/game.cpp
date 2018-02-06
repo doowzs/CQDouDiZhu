@@ -64,7 +64,7 @@ bool Desks::game(bool subType, int64_t deskNum, int64_t playNum, const char* msg
 	Desk *desk = casino.getOrCreatDesk(deskNum);
 
 	if (msg.find(L"斗地主版本") == 0) {
-		desk->msg << L"稳定版(?) 3.0.3 b21 201802061758";
+		desk->msg << L"3.1.1 dev23 201802061909";
 		desk->breakLine();
 		desk->msg << L"源代码与更新履历：https://github.com/doowzs/CQDouDiZhu";
 		desk->breakLine();

@@ -30,7 +30,7 @@ static const wstring CONFIG_PATH = L".\\app\\com.auntspecial.doudizhu\\config.in
 static const wstring CONFIG_DIR = L".\\app\\com.auntspecial.doudizhu\\";
 
 static const int CONIFG_INIT_SCORE = 200;
-static const int CONFIG_BOTTOM_SCORE = 50;
+static const int CONFIG_BOTTOM_SCORE = 5;
 
 static const wregex allotReg(L"·ÖÅä»ý·Ö(\\d+)=(\\d+)");
 static const wregex numberReg(L"\\d+");
@@ -106,6 +106,7 @@ public:
 
 	Desk();
 	int multiple;
+	int basic;
 	int turn;
 	wstring cards[54];
 	int64_t number;

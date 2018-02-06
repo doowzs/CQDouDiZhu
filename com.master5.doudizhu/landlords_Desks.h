@@ -30,8 +30,8 @@ Desk::Desk() {
 
 	this->whoIsWinner = 0;
 	this->multiple = 1;
+	this->basic = 0;
 	this->turn = 0;
-
 }
 
 void Desk::at(int64_t playNum)
@@ -68,11 +68,11 @@ void Desk::listPlayers(int type)
 	bool hasType = (type & 1) == 1;
 	bool hasWin = ((type >> 1) & 1) == 1;
 
-	int score = CONFIG_BOTTOM_SCORE * this->multiple;
+	int score = this->basic * this->multiple;
 	int halfScore = score / 2;
-	this->msg << L"积分倍数：" << this->multiple << L"x";
+	this->msg << L"本局积分：" << this->multiple << L" x " << this->basic << L" = " << this->basic*this->multiple;
 	this->breakLine();
-	this->msg << L"出牌次数(不计算过牌)：" << this->turn;
+	this->msg << L"出牌次数：" << this->turn;
 	this->breakLine();
 
 	for (unsigned i = 0; i < this->players.size(); i++) {
@@ -460,7 +460,7 @@ void Desk::sendBossCard()
 	}
 	sort(playerBoss->card.begin(), playerBoss->card.end(), Util::compareCard);
 
-	//playerBoss->msg << L"你是地主，收到底牌：";
+	//playerBoss->msg << L"你是地主，收到底牌：";   这里可能有bug？待更多测试验证
 	//playerBoss->breakLine();
 	for (unsigned m = 0; m < playerBoss->card.size(); m++) {
 		playerBoss->msg << L"[" << playerBoss->card.at(m) << L"]";
@@ -497,7 +497,7 @@ void Desk::getMultiple(int64_t playerNum)
 			this->at(this->players[index]->number);
 			this->msg << L"要加倍。";
 			this->breakLine();
-			this->msg << L"当前积分倍数：" << this->multiple << L"x";
+			this->msg << L"本局积分：" << this->multiple << L" x " << this->basic << L" = " << this->basic*this->multiple;
 			this->breakLine();
 			this->msg << L"---------------";
 			this->breakLine();
@@ -508,7 +508,7 @@ void Desk::getMultiple(int64_t playerNum)
 			this->breakLine();
 			this->msg << L"---------------";
 			this->breakLine();
-			this->msg << L"第" << this->turn + 1 << L"回合：当前剩余牌数量：";
+			this->msg << L"第" << this->turn + 1 << L"回合：剩余手牌数：";
 			this->breakLine();
 			for (unsigned i = 0; i < this->players.size(); i++) {
 				this->msg << i + 1 << L":";
@@ -531,7 +531,7 @@ void Desk::getMultiple(int64_t playerNum)
 			this->at(this->players[index]->number);
 			this->msg << L"要加倍。";
 			this->breakLine();
-			this->msg << L"当前积分倍数：" << this->multiple << L"x";
+			this->msg << L"本局积分：" << this->multiple << L" x " << this->basic << L" = " << this->basic*this->multiple;
 			this->breakLine();
 			this->msg << L"---------------";
 			this->breakLine();
@@ -564,7 +564,11 @@ void Desk::dontMultiple(int64_t playerNum)
 			this->breakLine();
 			this->msg << L"---------------";
 			this->breakLine();
-			this->msg << L"第" << this->turn + 1 << L"回合：当前剩余牌数量：";
+			this->msg << L"第" << this->turn + 1 << L"回合：";
+			this->breakLine();
+			this->msg << L"本局积分：" << this->multiple << L" x " << this->basic << L" = " << this->basic*this->multiple;
+			this->breakLine();
+			this->msg << L"剩余手牌数：";
 			this->breakLine();
 			for (unsigned i = 0; i < this->players.size(); i++) {
 				this->msg << i + 1 << L":";
@@ -677,7 +681,7 @@ void Desk::play(vector<wstring> list, int playIndex)
 
 			this->msg << L"打出王炸，积分倍数+2";
 			this->breakLine();
-			this->msg << L"当前积分倍数：" << this->multiple << L"x";
+			this->msg << L"本局积分：" << this->multiple << L" x " << this->basic << L" = " << this->basic*this->multiple;
 			this->breakLine();
 			this->msg << L"---------------";
 			this->breakLine();
@@ -687,7 +691,7 @@ void Desk::play(vector<wstring> list, int playIndex)
 
 			this->msg << L"打出炸弹，积分倍数+1";
 			this->breakLine();
-			this->msg << L"当前积分倍数：" << this->multiple << L"x";
+			this->msg << L"本局积分：" << this->multiple << L" x " << this->basic << L" = " << this->basic*this->multiple;
 			this->breakLine();
 			this->msg << L"---------------";
 			this->breakLine();
@@ -709,7 +713,7 @@ void Desk::play(vector<wstring> list, int playIndex)
 				this->breakLine();
 				this->msg << L"本局出现春天，积分倍数x2";
 				this->breakLine();
-				this->msg << L"当前积分倍数：" << this->multiple << L"x";
+				this->msg << L"本局积分：" << this->multiple << L" x " << this->basic << L" = " << this->basic*this->multiple;
 				this->breakLine();
 			}
 			else if (this->bossCount == 1 && this->whoIsWinner == 2) {
@@ -718,7 +722,7 @@ void Desk::play(vector<wstring> list, int playIndex)
 				this->breakLine();
 				this->msg << L"本局出现反春天，积分倍数x2";
 				this->breakLine();
-				this->msg << L"当前积分倍数：" << this->multiple << L"x";
+				this->msg << L"本局积分：" << this->multiple << L" x " << this->basic << L" = " << this->basic*this->multiple;
 				this->breakLine();
 			}
 
@@ -765,9 +769,9 @@ void Desk::play(vector<wstring> list, int playIndex)
 		this->breakLine();
 		this->msg << L"第" << this->turn + 1 << L"回合：";
 		this->breakLine();
-		this->msg << L"当前积分倍数：" << this->multiple << L"x";
+		this->msg << L"本局积分：" << this->multiple << L" x " << this->basic << L" = " << this->basic*this->multiple;
 		this->breakLine();
-		this->msg << L"当前剩余牌数量：";
+		this->msg << L"剩余手牌数：";
 		this->breakLine();
 		for (unsigned i = 0; i < this->players.size(); i++) {
 			this->msg << i + 1 << L":";
@@ -818,9 +822,9 @@ void Desk::discard(int64_t playNum)
 	this->breakLine();
 	this->msg << L"第" << this->turn + 1 << L"回合：";
 	this->breakLine();
-	this->msg << L"当前积分倍数：" << this->multiple << L"x";
+	this->msg << L"本局积分：" << this->multiple << L" x " << this->basic << L" = " << this->basic*this->multiple;
 	this->breakLine();
-	this->msg << L"当前剩余牌数量：";
+	this->msg << L"剩余手牌数：";
 	this->breakLine();
 	for (unsigned i = 0; i < this->players.size(); i++) {
 		this->msg << i + 1 << L":";
@@ -903,9 +907,9 @@ void Desk::surrender(int64_t playNum)
 		this->breakLine();
 		this->msg << L"第" << this->turn + 1 << L"回合：";
 		this->breakLine();
-		this->msg << L"当前积分倍数：" << this->multiple << L"x";
+		this->msg << L"本局积分：" << this->multiple << L" x " << this->basic << L" = " << this->basic*this->multiple;
 		this->breakLine();
-		this->msg << L"当前剩余牌数量：";
+		this->msg << L"剩余手牌数：";
 		this->breakLine();
 		for (unsigned i = 0; i < this->players.size(); i++) {
 			this->msg << i + 1 << L":";
@@ -958,7 +962,7 @@ void Desk::openCard(int64_t playNum)
 
 	this->msg << L"---------------";
 	this->breakLine();
-	this->msg << L"当前积分倍数：" << this->multiple << L"x";
+	this->msg << L"本局积分：" << this->multiple << L" x " << this->basic << L" = " << this->basic*this->multiple;
 
 
 }
@@ -976,7 +980,7 @@ void Desk::getScore(int64_t playNum)
 	this->at(playNum);
 	this->breakLine();
 	if (Admin::getScore(playNum)) {
-		this->msg << L"这是今天的500点积分，祝你玩♂的开心！";
+		this->msg << L"这是今天的200点积分，祝你玩♂的开心！";
 		this->breakLine();
 		this->msg << L"你现在的积分总额为" << Admin::readScore(playNum) << L"，";
 		this->msg << L"获取更多积分请明天再来或是和管理员";
@@ -1098,8 +1102,9 @@ void Desk::join(int64_t playNum)
 
 		//如果领取失败，中断执行
 		if (Admin::readScore(playNum) < 1) {
-			this->msg << L"获取积分失败，加入游戏失败！";
-			return;
+			this->msg << L"获取积分失败，系统赠送你5点积分，祝你弯道超车！";
+			Admin::addScore(playNum, 5);
+			//return;
 		}
 	}
 
@@ -1175,7 +1180,8 @@ void Desk::joinWatching(int64_t playNum) {
 	int playIndex = this->getPlayer(playNum);
 	int watchIndex = this->getWatcher(playNum);
 
-	if (playIndex != -1) {
+	//非弃牌玩家不能观战
+	if (playIndex != -1 && !players[playIndex]->isSurrender) {
 		this->at(playNum);
 		this->breakLine();
 		this->msg << L"你已经加入游戏，请不要作弊！";
@@ -1226,7 +1232,7 @@ void Desk::sendWatchingMsg_Join(int64_t joinNum) {
 
 	watcher->msg << L"---------------";
 	watcher->breakLine();
-	watcher->msg << L"当前积分倍数：" << this->multiple << L"x";
+	this->msg << L"本局积分：" << this->multiple << L" x " << this->basic << L" = " << this->basic*this->multiple;
 	watcher->breakLine();
 	watcher->msg << L"当前手牌信息：";
 	watcher->breakLine();
@@ -1258,7 +1264,7 @@ void Desk::sendWatchingMsg_Start() {
 		watcher->breakLine();
 		watcher->msg << L"第" << this->turn + 1 << L"回合：";
 		watcher->breakLine();
-		watcher->msg << L"当前积分倍数：" << this->multiple << L"x";
+		this->msg << L"本局积分：" << this->multiple << L" x " << this->basic << L" = " << this->basic*this->multiple;
 		watcher->breakLine();
 		watcher->msg << L"当前剩余牌：";
 		watcher->breakLine();
@@ -1300,7 +1306,7 @@ void Desk::sendWatchingMsg_Play() {
 		watcher->breakLine();
 		watcher->msg << L"第" << this->turn + 1 << L"回合：";
 		watcher->breakLine();
-		watcher->msg << L"当前积分倍数：" << this->multiple << L"x";
+		this->msg << L"本局积分：" << this->multiple << L" x " << this->basic << L" = " << this->basic*this->multiple;
 		watcher->breakLine();
 		watcher->msg << L"当前剩余牌：";
 		watcher->breakLine();
@@ -1388,9 +1394,15 @@ Desk* Desks::getOrCreatDesk(int64_t deskNum) {
 void Desk::startGame() {
 	if (this->players.size() == 3 && this->state == STATE_WAIT) {
 		this->state = STATE_START;
-		this->msg << L"游戏开始，桌号：" << this->number << L"。";;
+
+		//暂定：每100分标准分加5。
+		for (unsigned i = 0; i < this->players.size(); i++) {
+			this->basic += CONFIG_BOTTOM_SCORE * (Admin::readScore(players[i]->number) / 100);
+		}
+
+		this->msg << L"游戏开始，桌号：" << this->number << L"。";
 		this->breakLine();
-		this->msg << L"下面进入准备环节，准备环节可以进行[明牌]操作，明牌会使积分倍数 + 2，请谨慎操作";
+		this->msg << L"下面进入准备环节，准备环节可以进行[明牌]操作，明牌会使积分倍数 + 2，请谨慎操作！";
 		this->breakLine();
 		this->msg << L"---------------";
 		this->breakLine();
