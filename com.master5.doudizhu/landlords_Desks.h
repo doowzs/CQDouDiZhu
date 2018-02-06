@@ -1100,7 +1100,7 @@ void Desk::join(int64_t playNum)
 		this->msg << L"---------------";
 		this->breakLine();
 
-		//如果领取失败，中断执行
+		//如果领取失败，赠送5分
 		if (Admin::readScore(playNum) < 1) {
 			this->msg << L"获取积分失败，系统赠送你5点积分，祝你弯道超车！";
 			Admin::addScore(playNum, 5);
@@ -1159,7 +1159,7 @@ void Desk::exit(int64_t number)
 				for (unsigned i = 0; i < this->players.size(); i++) {
 					this->msg << i + 1 << L":";
 					this->at(this->players[i]->number);
-					this->msg << Admin::readScore(this->players[i]->number);
+					this->msg << L"，积分：" << Admin::readScore(this->players[i]->number);
 					this->breakLine();
 				}
 			}
