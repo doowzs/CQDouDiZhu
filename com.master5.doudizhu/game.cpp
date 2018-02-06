@@ -31,7 +31,7 @@ void Desk::commandList()
 	this->msg << L"------ 命令列表 ------" << "\r\n"
 		<< L"------ 斗地主（阿姨魔改版）------" << "\r\n"
 		<< L"------ *号表示支持后带符号 ------" << "\r\n"
-		<< L"1*. 上桌|打牌：加入游戏，并自动获取每日积分\r\n"
+		<< L"1*. 上桌|打牌：加入游戏\r\n"
 		<< L"2*. 出|打：出牌 比如 出23456！\r\n"
 		<< L"3*. 过(牌)|不要|pass：过牌\r\n"
 		<< L"4*. 抢(地主)|不抢：是否抢地主\r\n"
@@ -64,7 +64,11 @@ bool Desks::game(bool subType, int64_t deskNum, int64_t playNum, const char* msg
 	Desk *desk = casino.getOrCreatDesk(deskNum);
 
 	if (msg.find(L"斗地主版本") == 0) {
-		desk->msg << L"稳定版(?) 201802061750";
+		desk->msg << L"稳定版(?) 3.0.3 b21 201802061758";
+		desk->breakLine();
+		desk->msg << L"源代码与更新履历：https://github.com/doowzs/CQDouDiZhu";
+		desk->breakLine();
+		desk->msg << L"原作者与2.0.1源代码：https://github.com/lsjspl/CQDouDiZhu";
 	}
 	else if (msg.find(L"上桌") == 0 || msg.find(L"上座") == 0
 		|| msg.find(L"打牌") == 0) {
