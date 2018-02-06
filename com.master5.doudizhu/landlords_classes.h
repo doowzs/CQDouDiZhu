@@ -65,12 +65,20 @@ public:
 	static bool writeAdmin(int64_t playerNum);
 	static bool getScore(int64_t playerNum);
 	static bool addScore(int64_t playerNum, int score);
+
+	static int64_t readWin(int64_t playerNum);
+	static int64_t readLose(int64_t playerNum);
+	static bool addWin(int64_t playerNum);
+	static bool addLose(int64_t playerNum);
+
 	static bool IAmAdmin(int64_t playerNum);
 	static bool resetGame(int64_t playNum);
 	static bool allotScoreTo(wstring msg, int64_t playNum);
 	static bool gameOver(wstring msg, int64_t playNum);
 private:
 	static bool writeScore(int64_t playerNum, int64_t score);
+	static bool writeWin(int64_t playerNum, int64_t score);
+	static bool writeLose(int64_t playerNum, int64_t score);
 };
 
 //部分关于player的函数定义在Desks中
