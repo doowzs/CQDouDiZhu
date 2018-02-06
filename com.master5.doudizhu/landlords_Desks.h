@@ -20,6 +20,7 @@ Desk::Desk() {
 	this->lastPlayIndex = -1;//当前谁出得牌
 	this->currentPlayIndex = -1;//该谁出牌
 	this->bossIndex = -1;//谁是地主
+	this->isSecondCallForBoss = false;
 
 	this->bossCount = 0;
 	this->farmCount = 0;
@@ -30,8 +31,9 @@ Desk::Desk() {
 
 	this->whoIsWinner = 0;
 	this->multiple = 1;
-	this->basic = 5; //防止三个0分的玩积分还是0
+	this->basic = 15; //防止三个0分的玩积分还是0
 	this->turn = 0;
+	this->lastTime = 0; //最后一次发牌时间，记录用
 }
 
 void Desk::at(int64_t playNum)
@@ -71,7 +73,7 @@ void Desk::listPlayers(int type)
 	int score = this->basic * this->multiple;
 	int halfScore = score / 2;
 	
-	if (this->state <= STATE_BOSSING) {
+	if (this->players.size() < 3) {
 		this->msg << L"游戏尚未开始，玩家列表：";
 		this->breakLine();
 	}
@@ -404,7 +406,6 @@ void Desk::shuffle() {
 }
 
 void Desk::creataBoss() {
-
 	state = STATE_BOSSING;
 
 	this->msg << L"下面进入抢地主环节。";
@@ -449,10 +450,19 @@ void Desk::dontBoss(int64_t playerNum)
 
 		this->setNextPlayerIndex();
 
-		if (this->currentPlayIndex == this->bossIndex) {
+		if (this->currentPlayIndex == this->bossIndex && this->isSecondCallForBoss) {
 			this->sendBossCard();
 			this->state = STATE_MULTIPLING;
 			this->multipleChoice();
+			return;
+		}
+		else if (this->currentPlayIndex == this->bossIndex) {
+			this->msg << L"第一次抢地主失败，重新发牌。";
+			this->breakLine();
+			this->msg << L"---------------";
+			this->isSecondCallForBoss = true;
+			this->shuffle();
+			this->creataBoss();
 			return;
 		}
 		else {
@@ -684,6 +694,10 @@ void Desk::play(vector<wstring> list, int playIndex)
 		this->farmCount++;
 	}
 
+	//记录出牌时间
+	time_t rawtime;
+	this->lastTime = time(&rawtime);
+
 	vector<int> *weights = new vector<int>;
 
 	wstring type = this->getMycardType(list, weights);
@@ -787,7 +801,9 @@ void Desk::play(vector<wstring> list, int playIndex)
 			this->breakLine();
 		}
 
-		this->msg << L"上回合：" << this->lastCardType;
+		this->msg << L"上回合：";
+		this->at(this->players[currentPlayIndex]->number);
+		this->msg << L"打出" << this->lastCardType;
 		for (unsigned m = 0; m < this->lastCard.size(); m++) {
 			this->msg << L"[" << this->lastCard.at(m) << L"]";
 		}
@@ -837,13 +853,15 @@ void Desk::discard(int64_t playNum)
 		return;
 	}
 
+	//记录过牌时间
+	time_t rawtime;
+	this->lastTime = time(&rawtime);
 
 	this->at(playNum);
 	this->msg << L"过牌，";
 
 	this->setNextPlayerIndex();
 
-	this->breakLine();
 	this->msg << L"现在轮到";
 	this->at(this->players[this->currentPlayIndex]->number);
 	this->msg << L"出牌。";
@@ -865,6 +883,10 @@ void Desk::surrender(int64_t playNum)
 		this->msg << L"当前游戏状态无法弃牌（投降）！任意出牌后方可弃牌。";
 		return;
 	}
+
+	//记录弃牌时间
+	time_t rawtime;
+	this->lastTime = time(&rawtime);
 
 	Player *player = this->players[index];
 
@@ -966,7 +988,8 @@ void Desk::getPlayerInfo(int64_t playNum)
 	this->breakLine();
 	this->msg << Admin::readWin(playNum) << L"胜"
 		<< Admin::readLose(playNum) << L"负，";
-	this->msg << L"积分" << Admin::readScore(playNum) << L"。";
+	this->msg << L"积分";
+	this->readSendScore(playNum);
 	this->breakLine();
 }
 
@@ -990,6 +1013,23 @@ void Desk::getScore(int64_t playNum)
 		this->at((int64_t)Admin::readAdmin());
 		this->msg << L"进行py交易！";
 		this->breakLine();
+	}
+}
+
+int64_t Desk::readScore(int64_t playNum) {
+	int64_t hasScore = Admin::readScore(playNum);
+	hasScore -= 500000000;
+	return hasScore;
+}
+
+void Desk::readSendScore(int64_t playNum) {
+	int64_t hasScore = Admin::readScore(playNum);
+	hasScore -= 500000000;
+	if (hasScore >= 0) {
+		this->msg << hasScore;
+	}
+	else {
+		this->msg << L"-" << -hasScore;
 	}
 }
 
@@ -1115,17 +1155,20 @@ void Desk::join(int64_t playNum)
 		this->at(this->players[i]->number);
 		this->msg << L"，" << Admin::readWin(this->players[i]->number) << L"胜"
 			<< Admin::readLose(this->players[i]->number) << L"负";
-		this->msg << L"，积分" << Admin::readScore(this->players[i]->number);
+		this->msg << L"，积分";
+		this->readSendScore(this->players[i]->number);
 		this->breakLine();
 	}
 
-	if (Admin::readScore(playNum) < 1000) {
+	if (Admin::readScore(playNum) <= 0) {
 		this->msg << L"---------------";
 		this->breakLine();
 		this->at(playNum);
 		this->breakLine();
-		this->msg << L"你的积分仅为" << Admin::readScore(playNum) << L"，在这里van游戏可能太♂弱而受到挫折！";
-		this->breakLine();
+		this->msg << L"你的积分为";
+		this->readSendScore(playNum);
+		this->msg << L"，"; //在这里van游戏可能太♂弱而受到挫折！";
+		//this->breakLine();
 		this->msg << L"请多多练♂习以提高你的牌技，祝你弯道超车！";
 		this->breakLine();
 	}
@@ -1155,7 +1198,8 @@ void Desk::exit(int64_t number)
 					this->at(this->players[i]->number);
 					this->msg << L"，" << Admin::readWin(this->players[i]->number) << L"胜"
 						<< Admin::readLose(this->players[i]->number) << L"负";
-					this->msg << L"，积分" << Admin::readScore(this->players[i]->number);
+					this->msg << L"，积分";
+					this->readSendScore(this->players[i]->number);
 					this->breakLine();
 				}
 			}
@@ -1185,11 +1229,11 @@ void Desk::joinWatching(int64_t playNum) {
 		return;
 	}
 	if (watchIndex != -1) {
-		this->at(playNum);
-		this->breakLine();
-		this->msg << L"你已经加入观战模式。";
-		this->breakLine();
-		return;
+		//this->at(playNum);
+		//this->breakLine();
+		//this->msg << L"你已经加入观战模式。";
+		//this->breakLine();
+		//return;
 	}
 	if (this->players.size() < 3) {
 		this->at(playNum);
@@ -1203,9 +1247,9 @@ void Desk::joinWatching(int64_t playNum) {
 	watcher->number = playNum;
 	this->watchers.push_back(watcher);
 
-	this->at(playNum);
-	this->breakLine();
-	this->msg << L"加入观战模式成功。";
+	//this->at(playNum);
+	//this->breakLine();
+	//this->msg << L"加入观战模式成功。";
 
 	sendWatchingMsg_Join(playNum);
 }
@@ -1215,9 +1259,9 @@ void Desk::exitWatching(int64_t playNum) {
 	if (index != -1) {
 		vector<Watcher*>::iterator it = this->watchers.begin() + index;
 		this->watchers.erase(it);
-		this->at(playNum);
-		this->breakLine();
-		this->msg << L"退出观战模式成功。";
+		//this->at(playNum);
+		//this->breakLine();
+		//this->msg << L"退出观战模式成功。";
 	}
 }
 
@@ -1230,7 +1274,7 @@ void Desk::sendWatchingMsg_Join(int64_t joinNum) {
 
 	watcher->msg << L"---------------";
 	watcher->breakLine();
-	this->msg << L"本局积分：" << this->multiple << L" x " << this->basic << L" = " << this->basic*this->multiple;
+	watcher->msg << L"本局积分：" << this->multiple << L" x " << this->basic << L" = " << this->basic*this->multiple;
 	watcher->breakLine();
 	watcher->msg << L"当前手牌信息：";
 	watcher->breakLine();
@@ -1304,7 +1348,7 @@ void Desk::sendWatchingMsg_Play() {
 		watcher->breakLine();
 		watcher->msg << L"第" << this->turn + 1 << L"回合：";
 		watcher->breakLine();
-		this->msg << L"本局积分：" << this->multiple << L" x " << this->basic << L" = " << this->basic*this->multiple;
+		watcher->msg << L"本局积分：" << this->multiple << L" x " << this->basic << L" = " << this->basic*this->multiple;
 		watcher->breakLine();
 		watcher->msg << L"当前剩余牌：";
 		watcher->breakLine();
@@ -1336,7 +1380,6 @@ void Desk::sendWatchingMsg_Pass(int64_t playNum) {
 		watcher->at(playNum);
 		watcher->msg << L"过牌，";
 
-		watcher->breakLine();
 		watcher->msg << L"现在轮到";
 		watcher->at(this->players[this->currentPlayIndex]->number);
 		watcher->msg << L"出牌。";
@@ -1352,7 +1395,6 @@ void Desk::sendWatchingMsg_Surrender(int64_t playNum) {
 		watcher->at(playNum);
 		watcher->msg << L"弃牌，";
 
-		watcher->breakLine();
 		watcher->msg << L"现在轮到";
 		watcher->at(this->players[this->currentPlayIndex]->number);
 		watcher->msg << L"出牌。";
@@ -1393,11 +1435,24 @@ void Desk::startGame() {
 	if (this->players.size() == 3 && this->state == STATE_WAIT) {
 		this->state = STATE_START;
 
-		//暂定：每100分标准分加5。
+		int64_t maxScore = -500000001;
+		int64_t minScore = 500000001;
+		int64_t tempScore = 0;
+
+		//暂定：最大最低分每差50分标准分加3。
 		for (unsigned i = 0; i < this->players.size(); i++) {
-			Admin::addScore(this->players[i]->number, 5);
-			this->basic += CONFIG_BOTTOM_SCORE * (Admin::readScore(players[i]->number) / 100);
+			Admin::addScore(this->players[i]->number, CONFIG_PLAY_BONUS);
+
+			tempScore = Admin::readScore(this->players[i]->number);
+			if (tempScore > maxScore) {
+				maxScore = tempScore;
+			}
+			if (tempScore < minScore) {
+				minScore = tempScore;
+			}
 		}
+
+		this->basic += CONFIG_BOTTOM_SCORE * (maxScore-minScore) / 50;
 
 		this->msg << L"游戏开始，桌号：" << this->number << L"。";
 		this->breakLine();
@@ -1430,7 +1485,8 @@ void Desk::startGame() {
 				this->at(this->players[i]->number);
 				this->msg << L"，" << Admin::readWin(this->players[i]->number) << L"胜"
 					<< Admin::readLose(this->players[i]->number) << L"负";
-				this->msg << L"，积分" << Admin::readScore(this->players[i]->number);
+				this->msg << L"，积分";
+				this->readSendScore(this->players[i]->number);
 				this->breakLine();
 			}
 		}
@@ -1441,5 +1497,48 @@ void Desk::listCardsOnDesk(Player* player)
 {
 	for (unsigned m = 0; m < player->card.size(); m++) {
 		this->msg << L"[" << player->card.at(m) << L"]";
+	}
+}
+
+void Desk::AFKHandle(int64_t playNum) {
+	time_t rawtime;
+	int64_t timeNow = time(&rawtime);
+
+	if (this->state < STATE_GAMEING) {
+		return;
+	}
+
+	if (timeNow - this->lastTime > 60) {
+		this->at(playNum);
+		this->breakLine();
+		this->msg << L"举报成功。";
+		this->breakLine();
+
+		Admin::addScore(this->players[this->currentPlayIndex]->number, -CONFIG_SURRENDER_PENALTY);
+		Admin::addScore(playNum, CONFIG_SURRENDER_PENALTY);
+
+		this->at(this->players[this->currentPlayIndex]->number);
+		this->msg << L"[" << L"挂机-" << CONFIG_SURRENDER_PENALTY << L"分]";
+		this->breakLine();
+		this->at(playNum);
+		this->msg << L"[" << L"举报+" << CONFIG_SURRENDER_PENALTY << L"分]";
+		this->breakLine();
+
+
+		this->setNextPlayerIndex();
+		this->lastTime = timeNow;
+
+		this->msg << L"现在轮到";
+		this->at(this->players[this->currentPlayIndex]->number);
+		this->msg << L"出牌。";
+		this->breakLine();
+	}
+	else {
+		this->at(playNum);
+		this->breakLine();
+		this->msg << L"举报失败。";
+		this->breakLine();
+		this->at(this->players[this->currentPlayIndex]->number);
+		this->msg << L"的剩余出牌时间为" << this->lastTime + 60 - timeNow << L"秒。";
 	}
 }

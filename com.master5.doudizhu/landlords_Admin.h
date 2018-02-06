@@ -31,8 +31,6 @@ wstring Admin::readString() {
 
 bool Admin::allotScoreTo(wstring msg, int64_t playNum)
 {
-
-
 	int score;
 	int64_t playerNum;
 
@@ -88,8 +86,9 @@ int64_t Admin::readScore(int64_t playerNum)
 	wstring key = ss.str();
 	ss.str(L"");
 
-	//增加负分功能，最低值负5亿分
-	return GetPrivateProfileInt(model.c_str(), key.c_str(), 0, CONFIG_PATH.c_str())-500000000;
+	//增加负分功能，最低值负5亿分，第三个参数是未找到时返回的默认值。
+	//负分直接输出有bug，所以输出需要使用desk中的readScore函数。
+	return GetPrivateProfileInt(model.c_str(), key.c_str(), 500000000, CONFIG_PATH.c_str());
 }
 
 bool Admin::getScore(int64_t playerNum)
@@ -120,15 +119,15 @@ bool Admin::writeScore(int64_t playerNum, int64_t score)
 	ss << playerNum;
 	wstring key = ss.str();
 	ss.str(L"");
-	ss << score+500000000; //对应read中减少5亿分
+	ss << score;
 	wstring value = ss.str();
 	ss.str(L"");
 	return WritePrivateProfileString(model.c_str(), key.c_str(), value.c_str(), CONFIG_PATH.c_str());
 }
 
-bool Admin::addScore(int64_t playerNum, int score)
-{
-	int64_t hasScore = Admin::readScore(playerNum) + score;
+bool Admin::addScore(int64_t playerNum, int score) {
+	int64_t hasScore = Admin::readScore(playerNum); //这里使用desk里的函数
+	hasScore += score;
 	if (hasScore < 0) {
 		hasScore = 0;
 	}
