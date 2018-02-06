@@ -87,7 +87,9 @@ int64_t Admin::readScore(int64_t playerNum)
 	ss << playerNum;
 	wstring key = ss.str();
 	ss.str(L"");
-	return GetPrivateProfileInt(model.c_str(), key.c_str(), 0, CONFIG_PATH.c_str());
+
+	//增加负分功能，最低值负5亿分
+	return GetPrivateProfileInt(model.c_str(), key.c_str(), 0, CONFIG_PATH.c_str())-500000000;
 }
 
 bool Admin::getScore(int64_t playerNum)
@@ -118,7 +120,7 @@ bool Admin::writeScore(int64_t playerNum, int64_t score)
 	ss << playerNum;
 	wstring key = ss.str();
 	ss.str(L"");
-	ss << score;
+	ss << score+500000000; //对应read中减少5亿分
 	wstring value = ss.str();
 	ss.str(L"");
 	return WritePrivateProfileString(model.c_str(), key.c_str(), value.c_str(), CONFIG_PATH.c_str());
@@ -127,7 +129,13 @@ bool Admin::writeScore(int64_t playerNum, int64_t score)
 bool Admin::addScore(int64_t playerNum, int score)
 {
 	int64_t hasScore = Admin::readScore(playerNum) + score;
-	return  Admin::writeScore(playerNum, hasScore < 0 ? 0 : hasScore);
+	if (hasScore < 0) {
+		hasScore = 0;
+	}
+	else if (hasScore > 1000000000) {
+		hasScore = 1000000000;
+	}
+	return  Admin::writeScore(playerNum, hasScore);
 }
 
 int64_t Admin::readWin(int64_t playerNum)

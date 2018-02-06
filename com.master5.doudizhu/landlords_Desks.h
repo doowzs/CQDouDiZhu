@@ -70,10 +70,17 @@ void Desk::listPlayers(int type)
 
 	int score = this->basic * this->multiple;
 	int halfScore = score / 2;
-	this->msg << L"本局积分：" << this->multiple << L" x " << this->basic << L" = " << this->basic*this->multiple;
-	this->breakLine();
-	this->msg << L"出牌次数：" << this->turn;
-	this->breakLine();
+	
+	if (this->state <= STATE_BOSSING) {
+		this->msg << L"游戏尚未开始，玩家列表：";
+		this->breakLine();
+	}
+	else {
+		this->msg << L"本局积分：" << this->multiple << L" x " << this->basic << L" = " << this->basic*this->multiple;
+		this->breakLine();
+		this->msg << L"出牌次数：" << this->turn;
+		this->breakLine();
+	}
 
 	for (unsigned i = 0; i < this->players.size(); i++) {
 		this->msg << i + 1 << L"：";
@@ -88,15 +95,27 @@ void Desk::listPlayers(int type)
 					this->msg << L"[" << L"失败-" << score << L"分]";
 					Admin::addScore(this->players[i]->number, -score);
 					Admin::addLose(this->players[i]->number);
+
+					this->breakLine();
+					this->msg << L"剩余手牌：";
+					this->listCardsOnDesk(this->players[i]);
 				}
 				else if (this->players[i]->isSurrender) {
-					this->msg << L"[" << L"弃牌+" << 0 << L"分]";
+					this->msg << L"[" << L"弃牌-" << CONFIG_SURRENDER_PENALTY << L"分]";
+					Admin::addScore(this->players[i]->number, -CONFIG_SURRENDER_PENALTY);
 					Admin::addWin(this->players[i]->number);
 				}
 				else {
 					this->msg << L"[" << L"胜利+" << halfScore << L"分]";
 					Admin::addScore(this->players[i]->number, halfScore);
-					Admin::addWin(this->players[i]->number);
+					Admin::addWin(this->players[i]->number); 
+					
+					//如果还有牌，就公开手牌
+					if (this->players[i]->card.size() > 0) {
+						this->breakLine();
+						this->msg << L"剩余手牌：";
+						this->listCardsOnDesk(this->players[i]);
+					}
 				}
 			}
 			else {
@@ -106,14 +125,18 @@ void Desk::listPlayers(int type)
 					Admin::addWin(this->players[i]->number);
 				}
 				else if (this->players[i]->isSurrender) {
-					this->msg << L"[" << L"弃牌-" << score << L"分]";
-					Admin::addScore(this->players[i]->number, -score);
+					this->msg << L"[" << L"弃牌-" << score+CONFIG_SURRENDER_PENALTY << L"分]";
+					Admin::addScore(this->players[i]->number, - score - CONFIG_SURRENDER_PENALTY);
 					Admin::addLose(this->players[i]->number);
 				}
 				else {
 					this->msg << L"[" << L"失败-" << halfScore << L"分]";
 					Admin::addScore(this->players[i]->number, -halfScore);
 					Admin::addLose(this->players[i]->number);
+
+					this->breakLine();
+					this->msg << L"剩余手牌：";
+					this->listCardsOnDesk(this->players[i]);
 				}
 			}
 		}
@@ -817,6 +840,9 @@ void Desk::discard(int64_t playNum)
 
 	this->at(playNum);
 	this->msg << L"过牌，";
+
+	this->setNextPlayerIndex();
+
 	this->breakLine();
 	this->msg << L"现在轮到";
 	this->at(this->players[this->currentPlayIndex]->number);
@@ -878,30 +904,11 @@ void Desk::surrender(int64_t playNum)
 
 
 	if (this->currentPlayIndex == index) {
-		this->msg << L"上回合：" << this->lastCardType;
-		for (unsigned m = 0; m < this->lastCard.size(); m++) {
-			this->msg << L"[" << this->lastCard.at(m) << L"]";
-		}
-		this->breakLine();
-		this->msg << L"上位玩家：弃牌";
-		this->breakLine();
+		this->at(playNum);
+		this->msg << L"弃牌，";
 
 		this->setNextPlayerIndex();
-		this->msg << L"---------------";
-		this->breakLine();
-		this->msg << L"第" << this->turn + 1 << L"回合：";
-		this->breakLine();
-		this->msg << L"本局积分：" << this->multiple << L" x " << this->basic << L" = " << this->basic*this->multiple;
-		this->breakLine();
-		this->msg << L"剩余手牌数：";
-		this->breakLine();
-		for (unsigned i = 0; i < this->players.size(); i++) {
-			this->msg << i + 1 << L"：";
-			this->msg << L"[" << (i == this->bossIndex && state == STATE_GAMEING ? L"地主" : L"农民") << L"]";
-			this->at(this->players[i]->number);
-			this->msg << L"：" << static_cast<int>(this->players[i]->card.size());
-			this->breakLine();
-		}
+
 		this->msg << L"现在轮到";
 		this->at(this->players[this->currentPlayIndex]->number);
 		this->msg << L"出牌。";
@@ -1018,7 +1025,6 @@ void Desk::setNextPlayerIndex()
 
 void Desk::deal() {
 	unsigned i, k, j;
-	//this->msg << "debug: 进入deal函数";
 	for (i = k = 0; i < 3; i++) {
 		Player *player = players[i];
 
@@ -1066,7 +1072,7 @@ void Desk::join(int64_t playNum)
 		this->breakLine();
 		this->msg << L"很遗憾，人数已满！";
 		this->breakLine();
-		this->msg << L"自动为你[加入观战]！";
+		this->msg << L"系统自动帮你[加入观战]！退出请使用[退出观战]。";
 		this->breakLine();
 		this->msg << L"---------------";
 		this->breakLine();
@@ -1074,10 +1080,10 @@ void Desk::join(int64_t playNum)
 		return;
 	}
 
-	if (Admin::readScore(playNum) < 1) {
-		this->at(playNum);
-		this->breakLine();
-		this->msg << L"你的积分已经输光了，祝你在游戏中弯道超车！";
+	//if (Admin::readScore(playNum) < 1) {
+		//this->at(playNum);
+		//this->breakLine();
+		//this->msg << L"你的积分已经输光了，祝你在游戏中弯道超车！";
 		//this->breakLine();
 		//this->msg << L"系统自动为您尝试获取每日积分：";
 		//this->breakLine();
@@ -1094,7 +1100,7 @@ void Desk::join(int64_t playNum)
 			//Admin::addScore(playNum, 5);
 			//return;
 		//}
-	}
+	//}
 
 	Player *player = new Player;
 	player->number = playNum;
@@ -1107,20 +1113,20 @@ void Desk::join(int64_t playNum)
 	for (unsigned i = 0; i < this->players.size(); i++) {
 		this->msg << i + 1 << L"：";
 		this->at(this->players[i]->number);
-		this->msg << L"：" << Admin::readWin(this->players[i]->number) << L"胜"
+		this->msg << L"，" << Admin::readWin(this->players[i]->number) << L"胜"
 			<< Admin::readLose(this->players[i]->number) << L"负";
 		this->msg << L"，积分" << Admin::readScore(this->players[i]->number);
 		this->breakLine();
 	}
 
 	if (Admin::readScore(playNum) < 1000) {
-		this->msg << "---------------";
+		this->msg << L"---------------";
 		this->breakLine();
 		this->at(playNum);
 		this->breakLine();
-		this->msg << L"你的积分仅为" << Admin::readScore(playNum) << L"点，在这里van游戏可能太♂弱而受到挫折！";
+		this->msg << L"你的积分仅为" << Admin::readScore(playNum) << L"，在这里van游戏可能太♂弱而受到挫折！";
 		this->breakLine();
-		this->msg << L"请多多练♂习以提高你的牌技！";
+		this->msg << L"请多多练♂习以提高你的牌技，祝你弯道超车！";
 		this->breakLine();
 	}
 
@@ -1147,7 +1153,7 @@ void Desk::exit(int64_t number)
 				for (unsigned i = 0; i < this->players.size(); i++) {
 					this->msg << i + 1 << L"：";
 					this->at(this->players[i]->number);
-					this->msg << L"：" << Admin::readWin(this->players[i]->number) << L"胜"
+					this->msg << L"，" << Admin::readWin(this->players[i]->number) << L"胜"
 						<< Admin::readLose(this->players[i]->number) << L"负";
 					this->msg << L"，积分" << Admin::readScore(this->players[i]->number);
 					this->breakLine();
@@ -1422,7 +1428,7 @@ void Desk::startGame() {
 			for (unsigned i = 0; i < this->players.size(); i++) {
 				this->msg << i + 1 << L"：";
 				this->at(this->players[i]->number);
-				this->msg << L"：" << Admin::readWin(this->players[i]->number) << L"胜"
+				this->msg << L"，" << Admin::readWin(this->players[i]->number) << L"胜"
 					<< Admin::readLose(this->players[i]->number) << L"负";
 				this->msg << L"，积分" << Admin::readScore(this->players[i]->number);
 				this->breakLine();

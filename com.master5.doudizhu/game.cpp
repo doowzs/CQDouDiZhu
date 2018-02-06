@@ -50,7 +50,7 @@ void Desk::commandList()
 		<< L"A1. " << L"我是管理：绑定游戏管理员为当前发送消息的qq，管理员可使用管理命令。管理设置后不能更改" << "\r\n"
 		<< L"A2. " << L"重置斗地主：删除所有配置。重置后可重新设定管理员" << "\r\n"
 		<< L"A3. " << L"结束游戏[群号]：结束指定群号的游戏，比如：结束游戏123456" << "\r\n"
-		<< L"A4. " << L"分配积分[qq号]=[积分]：给指定qq分配积分，如：分配积分123456=500"
+		<< L"A4. " << L"设置积分[qq号]=[积分]：给指定qq分配积分，如：分配积分123456=500"
 		;
 	this->breakLine();
 }
@@ -66,7 +66,7 @@ bool Desks::game(bool subType, int64_t deskNum, int64_t playNum, const char* msg
 	Desk *desk = casino.getOrCreatDesk(deskNum);
 
 	if (msg.find(L"斗地主") == 0) {
-		desk->msg << L"斗地主 3.2.0 dev24 201802062149";
+		desk->msg << L"斗地主 3.2.5 dev29 201802062238";
 		desk->breakLine();
 		desk->msg << L"源代码与更新履历：https://github.com/doowzs/CQDouDiZhu";
 		desk->breakLine();
@@ -125,9 +125,22 @@ bool Desks::game(bool subType, int64_t deskNum, int64_t playNum, const char* msg
 		desk->getPlayerInfo(playNum);
 	}
 	else if (msg == L"获取积分" || msg == L"给点积分") {
-		//desk->getScore(playNum);
+		desk->msg << L"为了抑制积分通货膨胀，3.2.0版本起取消了每日积分功能，改为打牌赠送积分，";
 		desk->breakLine();
-		desk->msg << L"为了抑制积分通货膨胀，3.2.0版本起取消了每日积分功能。";
+		desk->msg << L"打牌一次获得" << CONFIG_PLAY_BONUS 
+			<< L"分，中途退出（弃牌）倒扣" << CONFIG_SURRENDER_PENALTY << "分。";
+		desk->breakLine();
+		desk->msg << L"分数下限为负5亿，上限为正5亿。";
+		desk->breakLine();
+	}
+	else if (msg == L"积分规则") {
+		desk->msg << L"为了抑制积分通货膨胀，3.2.0版本起取消了每日积分功能，改为打牌赠送积分，";
+		desk->breakLine();
+		desk->msg << L"打牌一次获得" << CONFIG_PLAY_BONUS
+			<< L"分，中途退出（弃牌）倒扣" << CONFIG_SURRENDER_PENALTY << "分。";
+		desk->breakLine();
+		desk->msg << L"分数下限为负5亿，上限为正5亿。";
+		desk->breakLine();
 	}
 	else if (msg.find(L"加入观战") == 0) {
 		desk->joinWatching(playNum);

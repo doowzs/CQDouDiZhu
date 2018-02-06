@@ -30,9 +30,11 @@ static const wstring CONFIG_PATH = L".\\app\\com.auntspecial.doudizhu\\config.in
 static const wstring CONFIG_DIR = L".\\app\\com.auntspecial.doudizhu\\";
 
 static const int CONIFG_INIT_SCORE = 200;
-static const int CONFIG_BOTTOM_SCORE = 5;
+static const int CONFIG_BOTTOM_SCORE = 3;
+static const int CONFIG_PLAY_BONUS = 20;
+static const int CONFIG_SURRENDER_PENALTY = 50;
 
-static const wregex allotReg(L"分配积分(\\d+)=(\\d+)");
+static const wregex allotReg(L"设置积分(\\d+)=(\\d+)");
 static const wregex numberReg(L"\\d+");
 
 class Util {
