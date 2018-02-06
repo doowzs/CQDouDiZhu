@@ -31,7 +31,7 @@ void Desk::commandList()
 	this->msg << L"------ 命令列表 ------" << "\r\n"
 		<< L"------ 斗地主（阿姨魔改版）------" << "\r\n"
 		<< L"------ *号表示支持后带符号 ------" << "\r\n"
-		<< L"1*. 上桌|打牌：加入游戏\r\n"
+		<< L"1*. 上桌|打牌：加入游戏，并自动获取每日积分\r\n"
 		<< L"2*. 出|打：出牌 比如 出23456！\r\n"
 		<< L"3*. 过(牌)|不要|pass：过牌\r\n"
 		<< L"4*. 抢(地主)|不抢：是否抢地主\r\n"
@@ -41,7 +41,7 @@ void Desk::commandList()
 		<< L"8. 玩家列表：当前在游戏中得玩家信息\r\n"
 		<< L"9*. 明牌：显示自己的牌给所有玩家，明牌会导致积分翻倍，只能在发完牌后以及出牌之前使用。\r\n"
 		<< L"10*. 弃牌：放弃本局游戏，当地主或者两名农民弃牌游戏结束，弃牌农民玩家赢了不得分，输了双倍扣分" << "\r\n"
-		<< L"11. 获取积分：获取积分，每天可获取1w分。" << "\r\n"
+		<< L"11. 获取积分：获取积分，每天可获取200积分。" << "\r\n"
 		<< L"12. 我的信息|我的积分：查看我的积分信息" << "\r\n"
 		<< L"13. 加入观战：暗中观察" << "\r\n"
 		<< L"14. 退出观战：光明正大的看打牌" << "\r\n"
@@ -64,7 +64,7 @@ bool Desks::game(bool subType, int64_t deskNum, int64_t playNum, const char* msg
 	Desk *desk = casino.getOrCreatDesk(deskNum);
 
 	if (msg.find(L"斗地主版本") == 0) {
-		desk->msg << L"测试版 201802060010";
+		desk->msg << L"稳定版(?) 201802061750";
 	}
 	else if (msg.find(L"上桌") == 0 || msg.find(L"上座") == 0
 		|| msg.find(L"打牌") == 0) {
@@ -121,10 +121,10 @@ bool Desks::game(bool subType, int64_t deskNum, int64_t playNum, const char* msg
 	else if (msg == L"获取积分" || msg == L"给点积分") {
 		desk->getScore(playNum);
 	}
-	else if (msg == L"加入观战") {
+	else if (msg.find(L"加入观战") == 0) {
 		desk->joinWatching(playNum);
 	}
-	else if (msg == L"退出观战") {
+	else if (msg.find(L"退出观战") == 0) {
 		desk->exitWatching(playNum);
 	}
 	else {

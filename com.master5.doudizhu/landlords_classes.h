@@ -29,7 +29,7 @@ static const int STATE_GAMEING = 5;
 static const wstring CONFIG_PATH = L".\\app\\com.auntspecial.doudizhu\\config.ini";
 static const wstring CONFIG_DIR = L".\\app\\com.auntspecial.doudizhu\\";
 
-static const int CONIFG_INIT_SCORE = 500;
+static const int CONIFG_INIT_SCORE = 200;
 static const int CONFIG_BOTTOM_SCORE = 50;
 
 static const wregex allotReg(L"分配积分(\\d+)=(\\d+)");
@@ -167,9 +167,11 @@ public:
 
 	void joinWatching(int64_t playNum);
 	void exitWatching(int64_t playNum);
+	void sendWatchingMsg_Join(int64_t joinNum);
 	void sendWatchingMsg_Start();
 	void sendWatchingMsg_Play();
 	void sendWatchingMsg_Surrender(int64_t playNum);
+	void sendWatchingMsg_Over();
 	void sendWatchingMsg_Pass(int64_t playNum);
 	int getWatcher(int64_t number);//按qq号获得玩家得索引
 };

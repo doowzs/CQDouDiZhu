@@ -355,8 +355,8 @@ void Desk::sendMsg(bool subType)
 
 void Desk::sendPlayerMsg()
 {
-	for (unsigned i = 0; i < this->watchers.size(); i++) {
-		watchers[i]->sendMsg();
+	for (unsigned i = 0; i < this->players.size(); i++) {
+		players[i]->sendMsg();
 	}
 }
 
@@ -460,8 +460,8 @@ void Desk::sendBossCard()
 	}
 	sort(playerBoss->card.begin(), playerBoss->card.end(), Util::compareCard);
 
-	playerBoss->msg << L"你是地主，收到底牌：";
-	playerBoss->breakLine();
+	//playerBoss->msg << L"你是地主，收到底牌：";
+	//playerBoss->breakLine();
 	for (unsigned m = 0; m < playerBoss->card.size(); m++) {
 		playerBoss->msg << L"[" << playerBoss->card.at(m) << L"]";
 	}
@@ -696,6 +696,7 @@ void Desk::play(vector<wstring> list, int playIndex)
 		if (mycardTmp.size() == 0) {//赢了。
 			this->whoIsWinner = this->bossIndex == this->currentPlayIndex ? 1 : 2;
 
+			this->sendWatchingMsg_Over();
 
 			this->msg << L"斗地主游戏结束，";
 			this->msg << (this->whoIsWinner == 1 ? L"地主赢了" : L"农民赢了");
@@ -869,6 +870,8 @@ void Desk::surrender(int64_t playNum)
 
 
 	if (this->whoIsWinner > 0) {
+		this->sendWatchingMsg_Over();
+
 		this->msg << L"斗地主游戏结束，";
 		this->msg << (this->whoIsWinner == 1 ? L"地主赢了" : L"农民赢了");
 		this->breakLine();
@@ -979,6 +982,7 @@ void Desk::getScore(int64_t playNum)
 		this->msg << L"获取更多积分请明天再来或是和管理员";
 		this->at((int64_t)Admin::readAdmin());
 		this->msg << L"进行py交易！";
+		this->breakLine();
 	}
 	else {
 		this->msg << L"你今日已经拿过积分！";
@@ -986,8 +990,8 @@ void Desk::getScore(int64_t playNum)
 		this->msg << L"获取更多积分请明天再来或是和管理员";
 		this->at((int64_t)Admin::readAdmin());
 		this->msg << L"进行py交易！";
+		this->breakLine();
 	}
-	this->breakLine();
 }
 
 void Desks::gameOver(int64_t number)
@@ -1022,7 +1026,7 @@ void Desk::setNextPlayerIndex()
 
 void Desk::deal() {
 	unsigned i, k, j;
-
+	//this->msg << "debug: 进入deal函数";
 	for (i = k = 0; i < 3; i++) {
 		Player *player = players[i];
 
@@ -1070,8 +1074,11 @@ void Desk::join(int64_t playNum)
 		this->breakLine();
 		this->msg << L"很遗憾，人数已满！";
 		this->breakLine();
-		this->msg << L"但你可以[加入观战]！";
+		this->msg << L"自动为你[加入观战]！";
 		this->breakLine();
+		this->msg << L"---------------";
+		this->breakLine();
+		this->joinWatching(playNum);
 		return;
 	}
 
@@ -1113,7 +1120,7 @@ void Desk::join(int64_t playNum)
 		this->breakLine();
 	}
 
-	if (Admin::readScore(playNum) < 300) {
+	if (Admin::readScore(playNum) < 1000) {
 		this->msg << "---------------";
 		this->breakLine();
 		this->at(playNum);
@@ -1182,10 +1189,10 @@ void Desk::joinWatching(int64_t playNum) {
 		this->breakLine();
 		return;
 	}
-	if (this->state <= STATE_BOSSING) {
+	if (this->players.size() < 3) {
 		this->at(playNum);
 		this->breakLine();
-		this->msg << L"游戏还未开始，当前无法加入观战模式。";
+		this->msg << L"游戏未开始或人数不足，当前无法加入观战模式。";
 		this->breakLine();
 		return;
 	}
@@ -1197,6 +1204,8 @@ void Desk::joinWatching(int64_t playNum) {
 	this->at(playNum);
 	this->breakLine();
 	this->msg << L"加入观战模式成功。";
+
+	sendWatchingMsg_Join(playNum);
 }
 
 void Desk::exitWatching(int64_t playNum) {
@@ -1206,6 +1215,34 @@ void Desk::exitWatching(int64_t playNum) {
 		this->watchers.erase(it);
 		this->msg << L"退出观战模式成功。";
 	}
+}
+
+void Desk::sendWatchingMsg_Join(int64_t joinNum) {
+	int index = getWatcher(joinNum);
+	Watcher *watcher = watchers[index];
+
+	watcher->msg << L"加入观战模式成功。";
+	watcher->breakLine();
+
+	watcher->msg << L"---------------";
+	watcher->breakLine();
+	watcher->msg << L"当前积分倍数：" << this->multiple << L"x";
+	watcher->breakLine();
+	watcher->msg << L"当前手牌信息：";
+	watcher->breakLine();
+	for (unsigned j = 0; j < this->players.size(); j++) {
+		watcher->msg << j + 1 << L":";
+		watcher->msg << L"[" << (j == this->bossIndex ? L"地主" : L"农民") << L"]";
+		watcher->at(this->players[j]->number);
+		watcher->breakLine();
+
+		for (unsigned m = 0; m < players[j]->card.size(); m++) {
+			watcher->msg << L"[" << players[j]->card.at(m) << L"]";
+		}
+
+		watcher->breakLine();
+	}
+	//不需要换行 watcher->breakLine();
 }
 
 void Desk::sendWatchingMsg_Start() {
@@ -1227,7 +1264,7 @@ void Desk::sendWatchingMsg_Start() {
 		watcher->breakLine();
 		for (unsigned j = 0; j < this->players.size(); j++) {
 			watcher->msg << j + 1 << L":";
-			watcher->msg << L"[" << (i == this->bossIndex && state == STATE_GAMEING ? L"地主" : L"农民") << L"]";
+			watcher->msg << L"[" << (j == this->bossIndex ? L"地主" : L"农民") << L"]";
 			watcher->at(this->players[j]->number);
 			watcher->breakLine();
 
@@ -1251,7 +1288,7 @@ void Desk::sendWatchingMsg_Play() {
 		watcher = watchers[i];
 
 		watcher->msg << L"上回合";
-		watcher->at(this->currentPlayIndex);
+		watcher->at(this->players[currentPlayIndex]->number);
 		watcher->msg << L"打出" << this->lastCardType;
 		for (unsigned m = 0; m < this->lastCard.size(); m++) {
 			watcher->msg << L"[" << this->lastCard.at(m) << L"]";
@@ -1269,7 +1306,7 @@ void Desk::sendWatchingMsg_Play() {
 		watcher->breakLine();
 		for (unsigned j = 0; j < this->players.size(); j++) {
 			watcher->msg << j + 1 << L":";
-			watcher->msg << L"[" << (i == this->bossIndex && state == STATE_GAMEING ? L"地主" : L"农民") << L"]";
+			watcher->msg << L"[" << (j == this->bossIndex ? L"地主" : L"农民") << L"]";
 			watcher->at(this->players[j]->number);
 			watcher->breakLine();
 
@@ -1319,6 +1356,19 @@ void Desk::sendWatchingMsg_Surrender(int64_t playNum) {
 	}
 }
 
+void Desk::sendWatchingMsg_Over() {
+	Watcher *watcher = watchers[0];
+	for (unsigned i = 0; i < this->watchers.size(); i++) {
+		watcher = watchers[i];
+
+		watcher->msg << L"斗地主游戏结束，";
+		watcher->msg << (this->whoIsWinner == 1 ? L"地主赢了" : L"农民赢了");
+		watcher->breakLine();
+		watcher->msg << L"退出观战模式。";
+		watcher->breakLine();
+	}
+}
+
 Desk* Desks::getOrCreatDesk(int64_t deskNum) {
 
 	Desk *desk = NULL;
@@ -1338,7 +1388,9 @@ Desk* Desks::getOrCreatDesk(int64_t deskNum) {
 void Desk::startGame() {
 	if (this->players.size() == 3 && this->state == STATE_WAIT) {
 		this->state = STATE_START;
-		this->msg << L"游戏开始，下面进入准备环节，准备环节可以进行[明牌]操作，明牌会使积分倍数+2，请谨慎操作";
+		this->msg << L"游戏开始，桌号：" << this->number << L"。";;
+		this->breakLine();
+		this->msg << L"下面进入准备环节，准备环节可以进行[明牌]操作，明牌会使积分倍数 + 2，请谨慎操作";
 		this->breakLine();
 		this->msg << L"---------------";
 		this->breakLine();
@@ -1353,10 +1405,11 @@ void Desk::startGame() {
 	}
 	else {
 		if (this->state >= STATE_BOSSING) {
-
-			this->msg << L"已经开始游戏。";
-			this->breakLine();
-			this->listPlayers(1);
+			//启动游戏往往会多次发送出发提示，减少多次无效提示
+			//this->msg << L"已经开始游戏。";
+			//this->breakLine();
+			//this->listPlayers(1);
+			return;
 		}
 		else {
 			this->msg << L"没有足够的玩家。";
