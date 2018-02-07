@@ -73,7 +73,7 @@ bool Desks::game(bool subType, int64_t deskNum, int64_t playNum, const char* msg
 	else if (msg.find(L"斗地主") == 0) {
 		desk->msg << L"斗地主 " << CONFIG_VERSION;
 		desk->breakLine();
-		desk->msg << L"数据库 " << Admin::readVersion();
+		desk->msg << L"数据库 " << Admin::readVersion() << L" UTC";
 		desk->breakLine();
 		desk->msg << L"源代码与更新履历：https://github.com/doowzs/CQDouDiZhu";
 		desk->breakLine();
