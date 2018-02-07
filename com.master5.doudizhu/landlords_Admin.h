@@ -4,6 +4,7 @@
 #include <vector>
 #include <algorithm>
 #include <iostream>
+#include <fstream>
 #include <sstream>
 #include <tchar.h>  
 #include <regex> 
@@ -31,6 +32,7 @@ wstring Admin::readString() {
 
 bool Admin::allotScoreTo(wstring msg, int64_t playNum)
 {
+	//分配正分
 	int score;
 	int64_t playerNum;
 
@@ -49,7 +51,32 @@ bool Admin::allotScoreTo(wstring msg, int64_t playNum)
 	scoress >> score;
 	scoress.str(L"");
 
-	return Admin::isAdmin(playNum) && Admin::writeScore(playerNum, score < 0 ? 0 : score);
+	return Admin::isAdmin(playNum) && Admin::writeScore(playerNum, score+500000000);
+}
+
+bool Admin::allotScoreTo2(wstring msg, int64_t playNum)
+{
+	//分配负分
+	int score;
+	int64_t playerNum;
+
+	wsmatch mr;
+	wstring::const_iterator src_it = msg.begin(); // 获取起始位置
+	wstring::const_iterator src_end = msg.end(); // 获取结束位置
+	regex_search(src_it, src_end, mr, numberReg);
+	wstringstream ss;
+	ss << mr[0].str();
+	ss >> playerNum;
+	ss.str(L"");
+	src_it = mr[0].second;
+	regex_search(src_it, src_end, mr, numberReg);
+	wstringstream scoress;
+	scoress << mr[0].str();
+	scoress >> score;
+	score = -score;
+	scoress.str(L"");
+
+	return Admin::isAdmin(playNum) && Admin::writeScore(playerNum, score+500000000);
 }
 
 bool Admin::gameOver(wstring msg, int64_t playNum)
@@ -193,6 +220,31 @@ bool Admin::addLose(int64_t playerNum)
 {
 	int64_t hasLose = Admin::readLose(playerNum) + 1;
 	return  Admin::writeLose(playerNum, hasLose);
+}
+
+int64_t Admin::readVersion()
+{
+	wstring model = L"version";
+	wstring key = L"version";
+	return GetPrivateProfileInt(model.c_str(), key.c_str(), 0, CONFIG_PATH.c_str());
+}
+
+bool Admin::writeVersion()
+{
+	wstring model = L"version";
+	wstring key = L"version";
+
+	time_t rawtime = time(0);
+
+	wstringstream ss;
+	ss.str(L"");
+
+	char tmp[64];
+	strftime(tmp, sizeof(tmp), "%y%m%d%H%M", localtime(&rawtime));
+	ss << tmp;
+	wstring value = ss.str();
+	ss.str(L"");
+	return WritePrivateProfileString(model.c_str(), key.c_str(), value.c_str(), CONFIG_PATH.c_str());
 }
 
 bool Admin::IAmAdmin(int64_t playerNum)

@@ -52,7 +52,7 @@ void Desk::commandList()
 		<< L"A1. " << L"我是管理：绑定游戏管理员为当前发送消息的qq，管理员可使用管理命令。管理设置后不能更改" << "\r\n"
 		<< L"A2. " << L"重置斗地主：删除所有配置。重置后可重新设定管理员" << "\r\n"
 		<< L"A3. " << L"结束游戏[群号]：结束指定群号的游戏，比如：结束游戏123456" << "\r\n"
-		<< L"A4. " << L"设置积分[qq号]=[积分]：给指定qq分配积分，如：分配积分123456=500"
+		<< L"A4. " << L"设置积分[qq号]=[积分]：给指定qq分配积分，如：设置积分123456=-998"
 		;
 	this->breakLine();
 }
@@ -67,8 +67,13 @@ bool Desks::game(bool subType, int64_t deskNum, int64_t playNum, const char* msg
 
 	Desk *desk = casino.getOrCreatDesk(deskNum);
 
-	if (msg.find(L"斗地主") == 0) {
-		desk->msg << L"斗地主 4.1.0 AlphaT build6 201802070038";
+	if (msg.find(L"斗地主命令") == 0 || msg.find(L"斗地主指令") == 0 || msg.find(L"斗地主操作") == 0) {
+		desk->commandList();
+	}
+	else if (msg.find(L"斗地主") == 0) {
+		desk->msg << L"斗地主 " << CONFIG_VERSION;
+		desk->breakLine();
+		desk->msg << L"数据库 " << Admin::readVersion();
 		desk->breakLine();
 		desk->msg << L"源代码与更新履历：https://github.com/doowzs/CQDouDiZhu";
 		desk->breakLine();
@@ -91,9 +96,6 @@ bool Desks::game(bool subType, int64_t deskNum, int64_t playNum, const char* msg
 	else if (msg.find(L"退桌") == 0 || msg.find(L"下桌") == 0
 		|| msg.find(L"不玩了") == 0) {//结束游戏
 		desk->exit(playNum);
-	}
-	else if (msg == L"斗地主命令列表" || msg == L"斗地主命令大全") {
-		desk->commandList();
 	}
 	else if (msg == L"玩家列表") {
 		desk->listPlayers(1);
@@ -176,6 +178,9 @@ bool Desks::game(int64_t playNum, const char * msgArray)
 	}
 	else if (regex_match(msg, allotReg)) {
 		result = Admin::allotScoreTo(msg, playNum);
+	}
+	else if (regex_match(msg, allotReg2)) {
+		result = Admin::allotScoreTo2(msg, playNum);
 	}
 	else if (msg.find(L"结束游戏") == 0) {//结束游戏
 		result = Admin::gameOver(msg, playNum);
