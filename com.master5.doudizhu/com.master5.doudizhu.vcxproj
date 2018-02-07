@@ -48,7 +48,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <IncludePath>D:\Master5\Documents\Visual Studio 2017\Projects\cqsdk-vc-master\com.master5.doudizhu\rapidjson;$(IncludePath)</IncludePath>
-    <OutDir>..\release</OutDir>
+    <OutDir>..\release\</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>

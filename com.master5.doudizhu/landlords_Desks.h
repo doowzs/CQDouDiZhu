@@ -192,6 +192,8 @@ wstring Desk::getMycardType(vector<wstring> list, vector<int> *weights)
 	vector<wstring> cards;
 	vector<int> counts;
 
+	bool no2InCards = true;
+
 	for (unsigned i = 0; i < list.size(); i++) {
 		int index = Util::find(cards, list[i]);
 		if (index == -1) {
@@ -200,6 +202,10 @@ wstring Desk::getMycardType(vector<wstring> list, vector<int> *weights)
 		}
 		else {
 			counts[index] = counts[index] + 1;
+		}
+
+		if (Util::findFlag(list[i]) == 12) {	//第12大的牌是2
+			no2InCards = false;
 		}
 	}
 
@@ -296,13 +302,11 @@ wstring Desk::getMycardType(vector<wstring> list, vector<int> *weights)
 		return L"连对";
 	}
 
-	bool no2InCards = true;
-
-	for (int i = 0; i < cardGroupCout; i++) {
-		if (cards[cardGroupCout] == L"2") {
-			no2InCards = false;
-		}
-	}
+	//for (unsigned i = 0; i < cardGroupCout; i++) {
+	//	if (cards[cardGroupCout] == L"2") {
+	//		no2InCards = false;
+	//	}
+	//}
 
 	if (cardGroupCout > 4 && max == 1 && min == 1
 		&& Util::findFlag(cards[0]) == Util::findFlag(cards[cardGroupCout - 1]) - cardGroupCout + 1
@@ -451,17 +455,20 @@ void Desk::dontBoss(int64_t playerNum)
 		this->setNextPlayerIndex();
 
 		if (this->currentPlayIndex == this->bossIndex && this->isSecondCallForBoss) {
+			this->msg << L"第2次抢地主失败，";
 			this->sendBossCard();
 			this->state = STATE_MULTIPLING;
 			this->multipleChoice();
 			return;
 		}
 		else if (this->currentPlayIndex == this->bossIndex) {
-			this->msg << L"第一次抢地主失败，重新发牌。";
+			this->msg << L"第1次抢地主失败，重新发牌。";
 			this->breakLine();
 			this->msg << L"---------------";
+			this->breakLine();
 			this->isSecondCallForBoss = true;
 			this->shuffle();
+			this->deal();
 			this->creataBoss();
 			return;
 		}
@@ -801,7 +808,7 @@ void Desk::play(vector<wstring> list, int playIndex)
 			this->breakLine();
 		}
 
-		this->msg << L"上回合：";
+		this->msg << L"上回合";
 		this->at(this->players[currentPlayIndex]->number);
 		this->msg << L"打出" << this->lastCardType;
 		for (unsigned m = 0; m < this->lastCard.size(); m++) {
@@ -1040,7 +1047,9 @@ void Desks::gameOver(int64_t number)
 		return;
 	}
 	vector<Desk*>::iterator it = casino.desks.begin() + index;
-	casino.desks.erase(it);
+	casino.desks.erase(it); 
+	//更新数据库版本
+	Admin::writeVersion();
 	//Util::sendGroupMsg(number, "游戏结束");
 }
 
@@ -1067,6 +1076,8 @@ void Desk::deal() {
 	unsigned i, k, j;
 	for (i = k = 0; i < 3; i++) {
 		Player *player = players[i];
+		//第二次发牌时需要消除所有已经发到的牌
+		players[i]->card.clear();
 
 		for (j = 0; j < 17; j++) {
 			player->card.push_back(cards[k++]);
@@ -1113,8 +1124,6 @@ void Desk::join(int64_t playNum)
 		this->msg << L"很遗憾，人数已满！";
 		this->breakLine();
 		this->msg << L"系统自动帮你[加入观战]！退出请使用[退出观战]。";
-		this->breakLine();
-		this->msg << L"---------------";
 		this->breakLine();
 		this->joinWatching(playNum);
 		return;
@@ -1536,8 +1545,7 @@ void Desk::AFKHandle(int64_t playNum) {
 	else {
 		this->at(playNum);
 		this->breakLine();
-		this->msg << L"举报失败。";
-		this->breakLine();
+		this->msg << L"举报失败，";
 		this->at(this->players[this->currentPlayIndex]->number);
 		this->msg << L"的剩余出牌时间为" << this->lastTime + 60 - timeNow << L"秒。";
 	}
