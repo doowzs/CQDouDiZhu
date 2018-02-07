@@ -1050,7 +1050,7 @@ void Desks::gameOver(int64_t number)
 	vector<Desk*>::iterator it = casino.desks.begin() + index;
 	casino.desks.erase(it); 
 	//更新数据库版本
-	Admin::writeVersion();
+	//Admin::writeVersion();
 	Util::sendGroupMsg(number, "游戏结束。");
 }
 

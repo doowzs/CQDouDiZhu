@@ -33,7 +33,7 @@ static const int CONIFG_INIT_SCORE = 200;
 static const int CONFIG_BOTTOM_SCORE = 3;
 static const int CONFIG_PLAY_BONUS = 0;
 static const int CONFIG_SURRENDER_PENALTY = 50;
-static const wstring CONFIG_VERSION = L"4.2.5 git-dev69 1802071951";
+static const wstring CONFIG_VERSION = L"4.2.6 master 1802072254";
 
 static const wregex allotReg(L"设置积分(\\d+)=(\\d+)");
 static const wregex allotReg2(L"设置积分(\\d+)=-(\\d+)");

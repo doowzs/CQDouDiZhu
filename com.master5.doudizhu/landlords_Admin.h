@@ -149,6 +149,10 @@ bool Admin::writeScore(int64_t playerNum, int64_t score)
 	ss << score;
 	wstring value = ss.str();
 	ss.str(L"");
+
+	//更新数据库版本
+	Admin::writeVersion();
+
 	return WritePrivateProfileString(model.c_str(), key.c_str(), value.c_str(), CONFIG_PATH.c_str());
 }
 
