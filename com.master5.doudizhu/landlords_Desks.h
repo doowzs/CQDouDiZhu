@@ -288,6 +288,7 @@ wstring Desk::getMycardType(vector<wstring> list, vector<int> *weights)
 	if (cardGroupCout > 2 && max == 2 && min == 2
 		&& Util::findFlag(cards[0]) == Util::findFlag(cards[cardGroupCout - 1]) - cardGroupCout + 1
 		&& Util::findFlag(cards[cardGroupCout - 1]) < 13
+		&& no2InCards	//连对不能有2
 		) {//连对
 		for (unsigned i = 0; i < tmpCount.size(); i++) {
 			int tmp = tmpCount[i];
@@ -311,7 +312,7 @@ wstring Desk::getMycardType(vector<wstring> list, vector<int> *weights)
 	if (cardGroupCout > 4 && max == 1 && min == 1
 		&& Util::findFlag(cards[0]) == Util::findFlag(cards[cardGroupCout - 1]) - cardGroupCout + 1
 		&& Util::findFlag(cards[cardGroupCout - 1]) < 13
-		&& no2InCards //三人斗地主顺子不能带2
+		&& no2InCards	//三人斗地主顺子不能带2
 		) {//顺子
 		for (unsigned i = 0; i < tmpCount.size(); i++) {
 			int tmp = tmpCount[i];
@@ -1050,7 +1051,7 @@ void Desks::gameOver(int64_t number)
 	casino.desks.erase(it); 
 	//更新数据库版本
 	Admin::writeVersion();
-	//Util::sendGroupMsg(number, "游戏结束");
+	Util::sendGroupMsg(number, "游戏结束。");
 }
 
 void Desk::setNextPlayerIndex()
@@ -1465,12 +1466,12 @@ void Desk::startGame() {
 
 		this->msg << L"游戏开始，桌号：" << this->number << L"。";
 		this->breakLine();
-		this->msg << L"下面进入准备环节，准备环节可以进行[明牌]操作，明牌会使积分倍数 + 2，请谨慎操作！";
-		this->breakLine();
+		//this->msg << L"准备环节可以进行[明牌]操作，明牌会使积分倍数 + 2，请谨慎操作！";
+		//this->breakLine();
 		this->msg << L"---------------";
 		this->breakLine();
 
-		this->listPlayers(1);
+		//this->listPlayers(1);
 
 		this->shuffle();
 
