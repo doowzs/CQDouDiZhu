@@ -21,7 +21,14 @@ int64_t Admin::readAdmin()
 
 bool Admin::isAdmin(int64_t playNum)
 {
-	return playNum == Admin::readAdmin();
+	if (playNum == Admin::readAdmin()) {
+		return true;
+	}
+	else {
+		wstring msg;
+		msg = L"你根本就不是管理员！";
+		Util::sendPrivateMsg(playNum, Util::wstring2string(msg).data());
+	}
 }
 
 wstring Admin::readString() {
@@ -217,13 +224,13 @@ bool Admin::writeLose(int64_t playerNum, int64_t lose)
 bool Admin::addWin(int64_t playerNum)
 {
 	int64_t hasWin = Admin::readWin(playerNum) + 1;
-	return  Admin::writeWin(playerNum, hasWin);
+	return Admin::writeWin(playerNum, hasWin);
 }
 
 bool Admin::addLose(int64_t playerNum)
 {
 	int64_t hasLose = Admin::readLose(playerNum) + 1;
-	return  Admin::writeLose(playerNum, hasLose);
+	return Admin::writeLose(playerNum, hasLose);
 }
 
 wstring Admin::readDataType() {
@@ -270,7 +277,7 @@ bool Admin::writeVersion()
 
 bool Admin::IAmAdmin(int64_t playerNum)
 {
-	return  Admin::readAdmin() == 0 && Admin::writeAdmin(playerNum);
+	return Admin::readAdmin() == 0 && Admin::writeAdmin(playerNum);
 }
 
 bool Admin::resetGame(int64_t playNum)
@@ -308,4 +315,54 @@ void Admin::getPlayerInfo(int64_t playNum) {
 	}
 
 	Util::sendPrivateMsg(playNum, Util::wstring2string(tmp).data());
+}
+
+bool Admin::backupData(int64_t playNum) {
+	if (!isAdmin(playNum)) {
+		return false;
+	}
+
+	wstring msg;
+	ifstream in;
+	ofstream out;
+
+	char *sourceFile = ".\\app\\com.auntspecial.doudizhu\\config.ini";
+	char *targetFile_1 = ".\\app\\com.auntspecial.doudizhu\\config_";
+	char *targetFile_2 = ".ini.bak";
+	char targetFile[80] = {0};
+
+	time_t rawtime = time(0);
+	char tmp[64];
+	strftime(tmp, sizeof(tmp), "%y%m%d%H%M", localtime(&rawtime));
+	strcpy(targetFile, targetFile_1);
+	strcat(targetFile, tmp);
+	strcat(targetFile, targetFile_2);
+
+	in.open(sourceFile, ios::binary);//打开源文件
+	if (in.fail())//打开源文件失败
+	{
+		cout << "Error 1: Fail to open the source file." << endl;
+		in.close();
+		out.close();
+		msg = L"源文件打开失败。";
+		Util::sendPrivateMsg(playNum, Util::wstring2string(msg).data());
+	}
+	out.open(targetFile, ios::binary);//创建目标文件 
+	if (out.fail())//创建文件失败
+	{
+		cout << "Error 2: Fail to create the new file." << endl;
+		out.close();
+		in.close();
+		msg = L"目标文件打开失败。";
+		Util::sendPrivateMsg(playNum, Util::wstring2string(msg).data());
+	}
+	else//复制文件
+	{
+		out << in.rdbuf();
+		out.close();
+		in.close();
+
+		msg = L"文件已备份至 " + Util::string2wstring(targetFile);
+		Util::sendPrivateMsg(playNum, Util::wstring2string(msg).data());
+	}
 }

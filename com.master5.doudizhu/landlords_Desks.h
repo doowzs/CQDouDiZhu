@@ -692,18 +692,6 @@ void Desk::play(vector<wstring> list, int playIndex)
 		}
 	}
 
-	//处理出牌次数
-	if (currentPlayIndex == this->bossIndex) {
-		this->bossCount++;
-	}
-	else {
-		this->farmCount++;
-	}
-
-	//记录出牌时间
-	time_t rawtime;
-	this->lastTime = time(&rawtime);
-
 	vector<int> *weights = new vector<int>;
 
 	wstring type = this->getMycardType(list, weights);
@@ -711,10 +699,21 @@ void Desk::play(vector<wstring> list, int playIndex)
 	bool isCanWin = this->isCanWin(cardCount, weights, type);
 
 	if (isCanWin) {
-
 		if (this->turn == 0) {
 			this->state = STATE_GAMEING;
 		}
+
+		//只有合法的出牌才能记录
+		//处理出牌次数
+		if (currentPlayIndex == this->bossIndex) {
+			this->bossCount++;
+		}
+		else {
+			this->farmCount++;
+		}
+		//记录出牌时间
+		time_t rawtime;
+		this->lastTime = time(&rawtime);
 
 		player->card = mycardTmp;
 		this->lastWeights = weights;
