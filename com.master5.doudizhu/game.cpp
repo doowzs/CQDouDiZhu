@@ -69,13 +69,16 @@ bool Desks::game(bool subType, int64_t deskNum, int64_t playNum, const char* msg
 
 	Desk *desk = casino.getOrCreatDesk(deskNum);
 
-	if (msg.find(L"斗地主命令") == 0 || msg.find(L"斗地主指令") == 0 || msg.find(L"斗地主操作") == 0) {
+	if (playNum = 80000000) {
+		desk->msg << L"匿名用户不能参加斗地主！";
+	}
+	else if (msg.find(L"斗地主命令") == 0 || msg.find(L"斗地主指令") == 0 || msg.find(L"斗地主操作") == 0) {
 		desk->commandList();
 	}
 	else if (msg.find(L"斗地主") == 0) {
 		desk->msg << L"斗地主 " << CONFIG_VERSION;
 		desk->breakLine();
-		desk->msg << Admin::readDataType() << L" " << Admin::readVersion() << L" UTC";
+		desk->msg << Admin::readDataType() << L" " << Admin::readVersion(); // << L" CST";
 		desk->breakLine();
 		desk->msg << L"源代码与更新履历：https://github.com/doowzs/CQDouDiZhu";
 		desk->breakLine();
@@ -197,7 +200,7 @@ bool Desks::game(int64_t playNum, const char * msgArray)
 		return false;
 	}
 	else if (msg == L"备份数据") {
-		Admin::backupData(playNum);
+		result = Admin::backupData(playNum);
 	}
 	else {
 		return false;

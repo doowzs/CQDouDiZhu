@@ -28,6 +28,7 @@ bool Admin::isAdmin(int64_t playNum)
 		wstring msg;
 		msg = L"你根本就不是管理员！";
 		Util::sendPrivateMsg(playNum, Util::wstring2string(msg).data());
+		return false;
 	}
 }
 
@@ -163,7 +164,7 @@ bool Admin::writeScore(int64_t playerNum, int64_t score)
 	return WritePrivateProfileString(model.c_str(), key.c_str(), value.c_str(), CONFIG_PATH.c_str());
 }
 
-bool Admin::addScore(int64_t playerNum, int score) {
+bool Admin::addScore(int64_t playerNum, int64_t score) {
 	int64_t hasScore = Admin::readScore(playerNum); //这里使用desk里的函数
 	hasScore += score;
 	if (hasScore < 0) {
@@ -261,14 +262,16 @@ bool Admin::writeVersion()
 {
 	wstring model = L"version";
 	wstring key = L"version";
-
-	time_t rawtime = time(0);
-
 	wstringstream ss;
 	ss.str(L"");
 
-	char tmp[64];
-	strftime(tmp, sizeof(tmp), "%y%m%d%H%M", localtime(&rawtime));
+
+	time_t rawtime = time(0);
+	char tmp[64] = "";
+	struct tm now_time;
+	localtime_s(&now_time, &rawtime);
+	Util::strcat_tm(tmp, sizeof(tmp), now_time);
+
 	ss << tmp;
 	wstring value = ss.str();
 	ss.str(L"");
@@ -288,7 +291,7 @@ bool Admin::resetGame(int64_t playNum)
 //私人查询信息
 void Admin::getPlayerInfo(int64_t playNum) {
 	wstringstream msg;
-	msg << Admin::readDataType() << L" " << Admin::readVersion() << L" UTC\r\n";
+	msg << Admin::readDataType() << L" " << Admin::readVersion() << L"\r\n"; // << L" UTC\r\n";
 	msg << L"[CQ:at,qq=" << playNum << L"]："
 		<< Admin::readWin(playNum) << L"胜"
 		<< Admin::readLose(playNum) << L"负，" 
@@ -332,29 +335,34 @@ bool Admin::backupData(int64_t playNum) {
 	char targetFile[80] = {0};
 
 	time_t rawtime = time(0);
-	char tmp[64];
-	strftime(tmp, sizeof(tmp), "%y%m%d%H%M", localtime(&rawtime));
-	strcpy(targetFile, targetFile_1);
-	strcat(targetFile, tmp);
-	strcat(targetFile, targetFile_2);
+	struct tm now_time;
+	localtime_s(&now_time, &rawtime);
+
+	strcpy_s(targetFile, sizeof(targetFile), targetFile_1);
+	Util::strcat_tm(targetFile, sizeof(targetFile), now_time);
+	strcat_s(targetFile, sizeof(targetFile), targetFile_2);
 
 	in.open(sourceFile, ios::binary);//打开源文件
 	if (in.fail())//打开源文件失败
 	{
-		cout << "Error 1: Fail to open the source file." << endl;
+		//cout << "Error 1: Fail to open the source file." << endl;
 		in.close();
 		out.close();
 		msg = L"源文件打开失败。";
 		Util::sendPrivateMsg(playNum, Util::wstring2string(msg).data());
+
+		return false;
 	}
 	out.open(targetFile, ios::binary);//创建目标文件 
 	if (out.fail())//创建文件失败
 	{
-		cout << "Error 2: Fail to create the new file." << endl;
+		//cout << "Error 2: Fail to create the new file." << endl;
 		out.close();
 		in.close();
-		msg = L"目标文件打开失败。";
+		msg = L"目标文件打开失败。\r\n" + Util::string2wstring(targetFile);
 		Util::sendPrivateMsg(playNum, Util::wstring2string(msg).data());
+
+		return false;
 	}
 	else//复制文件
 	{
@@ -362,7 +370,9 @@ bool Admin::backupData(int64_t playNum) {
 		out.close();
 		in.close();
 
-		msg = L"文件已备份至 " + Util::string2wstring(targetFile);
+		msg = L"文件已备份至\r\n" + Util::string2wstring(targetFile);
 		Util::sendPrivateMsg(playNum, Util::wstring2string(msg).data());
+
+		return true;
 	}
 }

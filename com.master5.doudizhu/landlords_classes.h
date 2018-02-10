@@ -34,7 +34,7 @@ static const int CONFIG_BOTTOM_SCORE = 3;
 static const int CONFIG_TOP_SCORE = 1000;
 static const int CONFIG_PLAY_BONUS = 0;
 static const int CONFIG_SURRENDER_PENALTY = 50;
-static const wstring CONFIG_VERSION = L"4.4.1 dev 1802102258";
+static const wstring CONFIG_VERSION = L"4.5.0 master 1802110012";
 
 static const wregex allotReg(L"设置积分(\\d+)=(\\d+)");
 static const wregex allotReg2(L"设置积分(\\d+)=-(\\d+)");
@@ -43,21 +43,23 @@ static const wregex numberReg(L"\\d+");
 class Util {
 public:
 	static int AC;
+
 	static void testMsg(bool subType, int64_t playNum, int64_t desknum, const char * str);
 	static void sendGroupMsg(int64_t groupid, const char *msg);
 	static void sendDiscussMsg(int64_t groupid, const char *msg);
 	static void sendPrivateMsg(int64_t groupid, const char *msg);
-	static int  findAndRemove(vector<wstring> &dest, wstring str);
-	static int  find(vector<wstring> &dest, wstring str);
-	static int  findFlag(wstring str);
-	static int  desc(int a, int b);
-	static int  asc(int a, int b);
-	static bool  compareCard(const wstring &carda, const wstring &cardb);
-	static void  trim(wstring &s);
-	static void  toUpper(wstring &str);
+	static int findAndRemove(vector<wstring> &dest, wstring str);
+	static int find(vector<wstring> &dest, wstring str);
+	static int findFlag(wstring str);
+	static int desc(int a, int b);
+	static int asc(int a, int b);
+	static bool compareCard(const wstring &carda, const wstring &cardb);
+	static void trim(wstring &s);
+	static void toUpper(wstring &str);
 	static void setAC(int32_t ac);
 	static string wstring2string(wstring wstr);
 	static wstring string2wstring(string str);
+	static void strcat_tm(char* result, rsize_t size, tm now_time);
 	static void mkdir();
 };
 
@@ -69,7 +71,7 @@ public:
 	static bool isAdmin(int64_t playNum);
 	static bool writeAdmin(int64_t playerNum);
 	static bool getScore(int64_t playerNum);
-	static bool addScore(int64_t playerNum, int score);
+	static bool addScore(int64_t playerNum, int64_t score);
 
 	static int64_t readWin(int64_t playerNum);
 	static int64_t readLose(int64_t playerNum);
@@ -127,9 +129,9 @@ class Desk {
 public:
 
 	Desk();
-	int multiple;
-	int basic;
 	int turn;
+	int64_t multiple;
+	int64_t basic;
 	int64_t lastTime;
 	wstring cards[54];
 	int64_t number;

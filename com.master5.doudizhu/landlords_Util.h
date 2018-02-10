@@ -154,3 +154,24 @@ void Util::setAC(int32_t ac)
 	Util::AC = ac;
 }
 
+void Util::strcat_tm(char* result, rsize_t size, struct tm now_time) {
+	char tmp[20] = {0};
+
+	tmp[0] = '0' + (now_time.tm_year % 100) / 10;
+	tmp[1] = '0' + (now_time.tm_year % 100) % 10;
+	tmp[2] = '0' + (now_time.tm_mon + 1) / 10;
+	tmp[3] = '0' + (now_time.tm_mon + 1) % 10;
+	tmp[4] = '0' + (now_time.tm_mday) / 10;
+	tmp[5] = '0' + (now_time.tm_mday) % 10;
+	tmp[6] = '0' + (now_time.tm_hour) / 10;
+	tmp[7] = '0' + (now_time.tm_hour) % 10;
+	tmp[8] = '0' + (now_time.tm_min) / 10;
+	tmp[9] = '0' + (now_time.tm_min) % 10;
+
+	//wstring msg = L"我恨微软，当前时间：" + Util::string2wstring(tmp);
+	//Util::sendPrivateMsg(Admin::readAdmin(), Util::wstring2string(msg).data());
+
+	strcat_s(result, size, tmp);
+	return;
+}
+
