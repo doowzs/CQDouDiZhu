@@ -22,7 +22,7 @@ static const wstring flag[15] = { L"3",L"4",L"5",L"6",L"7",L"8",L"9",L"10",L"J",
 static const int STATE_WAIT = 0;
 static const int STATE_START = 1;
 static const int STATE_BOSSING = 2;
-static const int STATE_MULTIPLING = 4;
+static const int STATE_MULTIPLING = 3;
 static const int STATE_READYTOGO = 4;
 static const int STATE_GAMEING = 5;
 
@@ -31,9 +31,10 @@ static const wstring CONFIG_DIR = L".\\app\\com.auntspecial.doudizhu\\";
 
 static const int CONFIG_INIT_SCORE = 150;
 static const int CONFIG_BOTTOM_SCORE = 3;
+static const int CONFIG_TOP_SCORE = 1000;
 static const int CONFIG_PLAY_BONUS = 0;
 static const int CONFIG_SURRENDER_PENALTY = 50;
-static const wstring CONFIG_VERSION = L"4.3.4 dev 1802102209";
+static const wstring CONFIG_VERSION = L"4.3.5 dev 1802102231";
 
 static const wregex allotReg(L"设置积分(\\d+)=(\\d+)");
 static const wregex allotReg2(L"设置积分(\\d+)=-(\\d+)");

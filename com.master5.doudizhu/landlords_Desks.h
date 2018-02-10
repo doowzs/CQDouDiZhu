@@ -989,7 +989,7 @@ void Desk::openCard(int64_t playNum)
 
 void Desk::getPlayerInfo(int64_t playNum)
 {
-	this->msg << Admin::readDataType() << Admin::readVersion() << L" UTC";
+	this->msg << Admin::readDataType() << L" " << Admin::readVersion() << L" UTC";
 	this->breakLine();
 	this->at(playNum);
 	this->msg << L"：";
@@ -1308,7 +1308,12 @@ void Desk::sendWatchingMsg_Start() {
 	for (unsigned i = 0; i < this->watchers.size(); i++) {
 		watcher = watchers[i];
 
-		watcher->msg << L"斗地主游戏开始";
+		if (!this->isSecondCallForBoss) {
+			watcher->msg << L"斗地主游戏开始";
+		}
+		else {
+			watcher->msg << L"重新发牌";
+		}
 		watcher->breakLine();
 
 		//这里不需要this->setNextPlayerIndex();
@@ -1318,7 +1323,7 @@ void Desk::sendWatchingMsg_Start() {
 		watcher->breakLine();
 		watcher->msg << L"本局积分：" << this->multiple << L" x " << this->basic << L" = " << this->basic*this->multiple;
 		watcher->breakLine();
-		watcher->msg << L"当前剩余牌：";
+		watcher->msg << L"初始手牌：";
 		watcher->breakLine();
 		for (unsigned j = 0; j < this->players.size(); j++) {
 			watcher->msg << j + 1 << L"：";
@@ -1332,10 +1337,6 @@ void Desk::sendWatchingMsg_Start() {
 
 			watcher->breakLine();
 		}
-		watcher->breakLine();
-		watcher->msg << L"现在轮到";
-		watcher->at(this->players[this->currentPlayIndex]->number);
-		watcher->msg << L"出牌。";
 		watcher->breakLine();
 	}
 }
@@ -1463,10 +1464,13 @@ void Desk::startGame() {
 		}
 
 		this->basic += CONFIG_BOTTOM_SCORE * (maxScore-minScore) / 50;
+		if (this->basic > CONFIG_TOP_SCORE) {
+			this->basic = CONFIG_TOP_SCORE; //最大单局基本分1000分
+		}
 
 		this->msg << L"游戏开始，桌号：" << this->number << L"。";
 		this->breakLine(); 
-		//重复提示，删除
+		//重复提示，已删除
 		//this->msg << L"本局积分：" << this->multiple << L" x " << this->basic << L" = " << this->basic*this->multiple;
 		//this->breakLine(); 
 

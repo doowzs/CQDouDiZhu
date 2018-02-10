@@ -130,7 +130,7 @@ bool Admin::getScore(int64_t playerNum)
 	int64_t now = time(&rawtime);
 
 	if (now / (24 * 60 * 60) > lastGetScoreTime / (24 * 60 * 60)) {
-		Admin::addScore(playerNum, CONIFG_INIT_SCORE);
+		Admin::addScore(playerNum, CONFIG_INIT_SCORE);
 		ss << now;
 		wstring value = ss.str();
 		ss.str(L"");
@@ -229,7 +229,7 @@ bool Admin::addLose(int64_t playerNum)
 wstring Admin::readDataType() {
 	wstring model = L"type";
 	wstring key = L"isofficial";
-	return GetPrivateProfileInt(model.c_str(), key.c_str(), 0, CONFIG_PATH.c_str()) ? L"正式库" : L"测试库";
+	return GetPrivateProfileInt(model.c_str(), key.c_str(), 0, CONFIG_PATH.c_str()) ? L"正式数据" : L"测试数据";
 }
 
 bool Admin::writeDataType() {
@@ -281,7 +281,7 @@ bool Admin::resetGame(int64_t playNum)
 //私人查询信息
 void Admin::getPlayerInfo(int64_t playNum) {
 	wstringstream msg;
-	msg << Admin::readDataType() << Admin::readVersion() << L" UTC\r\n";
+	msg << Admin::readDataType() << L" " << Admin::readVersion() << L" UTC\r\n";
 	msg << L"[CQ:at,qq=" << playNum << L"]："
 		<< Admin::readWin(playNum) << L"胜"
 		<< Admin::readLose(playNum) << L"负，" 

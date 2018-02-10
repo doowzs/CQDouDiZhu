@@ -73,7 +73,7 @@ bool Desks::game(bool subType, int64_t deskNum, int64_t playNum, const char* msg
 	else if (msg.find(L"斗地主") == 0) {
 		desk->msg << L"斗地主 " << CONFIG_VERSION;
 		desk->breakLine();
-		desk->msg << Admin::readDataType() << Admin::readVersion() << L" UTC";
+		desk->msg << Admin::readDataType() << L" " << Admin::readVersion() << L" UTC";
 		desk->breakLine();
 		desk->msg << L"源代码与更新履历：https://github.com/doowzs/CQDouDiZhu";
 		desk->breakLine();
@@ -134,9 +134,10 @@ bool Desks::game(bool subType, int64_t deskNum, int64_t playNum, const char* msg
 		desk->msg << L"打牌一次获得" << CONFIG_PLAY_BONUS
 			<< L"分，中途退出（弃牌）倒扣" << CONFIG_SURRENDER_PENALTY << L"分。";
 		desk->breakLine();
-		desk->msg << L"每局游戏的标准分计算方法为：初始值" << 15
+		desk->msg << L"每局游戏的标准分计算方法为：初始值" << CONFIG_INIT_SCORE
 			<< L"分，最高最低分玩家的积分差额每有" << 50
-			<< L"分，标准分加" << CONFIG_BOTTOM_SCORE << L"分。";
+			<< L"分，标准分加" << CONFIG_BOTTOM_SCORE << L"分，但标准分不会超过"
+			<< CONFIG_TOP_SCORE << L"分。";
 		desk->breakLine();
 		desk->msg << L"分数下限为负5亿，上限为正5亿。";
 		desk->breakLine();
@@ -190,6 +191,7 @@ bool Desks::game(int64_t playNum, const char * msgArray)
 	}
 	else if (msg == L"我的信息") {
 		Admin::getPlayerInfo(playNum);
+		return false;
 	}
 	else {
 		return false;
