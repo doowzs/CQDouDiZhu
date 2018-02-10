@@ -33,7 +33,7 @@ static const int CONFIG_INIT_SCORE = 150;
 static const int CONFIG_BOTTOM_SCORE = 3;
 static const int CONFIG_PLAY_BONUS = 0;
 static const int CONFIG_SURRENDER_PENALTY = 50;
-static const wstring CONFIG_VERSION = L"4.3.2 dev 1802102200";
+static const wstring CONFIG_VERSION = L"4.3.4 dev 1802102209";
 
 static const wregex allotReg(L"设置积分(\\d+)=(\\d+)");
 static const wregex allotReg2(L"设置积分(\\d+)=-(\\d+)");
@@ -75,6 +75,8 @@ public:
 	static bool addWin(int64_t playerNum);
 	static bool addLose(int64_t playerNum);
 
+	static wstring readDataType();
+	static bool writeDataType();
 	static int64_t readVersion();
 	static bool writeVersion();
 

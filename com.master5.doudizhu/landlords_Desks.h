@@ -989,9 +989,10 @@ void Desk::openCard(int64_t playNum)
 
 void Desk::getPlayerInfo(int64_t playNum)
 {
-	this->at(playNum);
+	this->msg << Admin::readDataType() << Admin::readVersion() << L" UTC";
 	this->breakLine();
-	this->msg << L"玩家信息：";
+	this->at(playNum);
+	this->msg << L"：";
 	this->breakLine();
 	this->msg << Admin::readWin(playNum) << L"胜"
 		<< Admin::readLose(playNum) << L"负，";
