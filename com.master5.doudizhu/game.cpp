@@ -185,6 +185,9 @@ bool Desks::game(int64_t playNum, const char * msgArray)
 	else if (msg.find(L"结束游戏") == 0) {//结束游戏
 		result = Admin::gameOver(msg, playNum);
 	}
+	else if (msg == L"我的信息") {
+		Admin::getPlayerInfo(playNum);
+	}
 	else {
 		return false;
 	}

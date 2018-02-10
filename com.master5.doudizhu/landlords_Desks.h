@@ -518,8 +518,6 @@ void Desk::sendBossCard()
 }
 
 void Desk::multipleChoice() {
-	this->currentPlayIndex = this->bossIndex;
-
 	this->msg << L"抢地主环节结束，下面进入加倍环节。";
 	this->breakLine();
 	this->msg << L"---------------";
@@ -817,7 +815,11 @@ void Desk::play(vector<wstring> list, int playIndex)
 		}
 		this->breakLine();
 
+		//观战播报，必须先转发战况再设置下一位玩家，否则玩家信息错误
+		this->sendWatchingMsg_Play();
+
 		this->setNextPlayerIndex();
+
 		this->msg << L"---------------";
 		//this->breakLine();
 		//this->msg << L"第" << this->turn + 1 << L"回合：";
@@ -838,9 +840,6 @@ void Desk::play(vector<wstring> list, int playIndex)
 		this->at(this->players[this->currentPlayIndex]->number);
 		this->msg << L"出牌。";
 		this->breakLine();
-
-		//观战播报
-		this->sendWatchingMsg_Play();
 	}
 	else {
 		this->at(this->players[this->currentPlayIndex]->number);
@@ -1051,7 +1050,7 @@ void Desks::gameOver(int64_t number)
 	casino.desks.erase(it); 
 	//更新数据库版本
 	//Admin::writeVersion();
-	Util::sendGroupMsg(number, "游戏结束。");
+	//Util::sendGroupMsg(number, "游戏结束。");
 }
 
 void Desk::setNextPlayerIndex()
@@ -1124,9 +1123,9 @@ void Desk::join(int64_t playNum)
 		this->breakLine();
 		this->msg << L"很遗憾，人数已满！";
 		this->breakLine();
-		this->msg << L"系统自动帮你[加入观战]！退出请使用[退出观战]。";
+		this->msg << L"但你可以[加入观战]！";
 		this->breakLine();
-		this->joinWatching(playNum);
+		//this->joinWatching(playNum); 不再自动加入
 		return;
 	}
 
@@ -1243,7 +1242,7 @@ void Desk::joinWatching(int64_t playNum) {
 		//this->breakLine();
 		//this->msg << L"你已经加入观战模式。";
 		//this->breakLine();
-		//return;
+		return;
 	}
 	if (this->players.size() < 3) {
 		this->at(playNum);
@@ -1316,7 +1315,7 @@ void Desk::sendWatchingMsg_Start() {
 		//watcher->breakLine();
 		//watcher->msg << L"第" << this->turn + 1 << L"回合：";
 		watcher->breakLine();
-		this->msg << L"本局积分：" << this->multiple << L" x " << this->basic << L" = " << this->basic*this->multiple;
+		watcher->msg << L"本局积分：" << this->multiple << L" x " << this->basic << L" = " << this->basic*this->multiple;
 		watcher->breakLine();
 		watcher->msg << L"当前剩余牌：";
 		watcher->breakLine();
@@ -1466,8 +1465,10 @@ void Desk::startGame() {
 
 		this->msg << L"游戏开始，桌号：" << this->number << L"。";
 		this->breakLine(); 
-		this->msg << L"本局积分：" << this->multiple << L" x " << this->basic << L" = " << this->basic*this->multiple;
-		this->breakLine(); 
+		//重复提示，删除
+		//this->msg << L"本局积分：" << this->multiple << L" x " << this->basic << L" = " << this->basic*this->multiple;
+		//this->breakLine(); 
+
 		//this->msg << L"准备环节可以进行[明牌]操作，明牌会使积分倍数 + 2，请谨慎操作！";
 		//this->breakLine();
 		this->msg << L"---------------";

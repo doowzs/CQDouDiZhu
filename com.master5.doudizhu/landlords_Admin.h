@@ -260,3 +260,34 @@ bool Admin::resetGame(int64_t playNum)
 {
 	return playNum == Admin::readAdmin() && DeleteFile(CONFIG_PATH.c_str());
 }
+
+//私人查询信息
+void Admin::getPlayerInfo(int64_t playNum) {
+	wstringstream msg;
+	msg << L"[CQ:at,qq=" << playNum << L"]\r\n玩家信息："
+		<< Admin::readWin(playNum) << L"胜"
+		<< Admin::readLose(playNum) << L"负，" 
+		<< L"积分";
+
+	int64_t hasScore = Admin::readScore(playNum);
+	hasScore -= 500000000;
+	if (hasScore >= 0) {
+		msg << hasScore;
+	}
+	else {
+		msg << L"-" << -hasScore;
+	}
+	msg << "\r\n";
+
+	wstring tmp = msg.str();
+	if (tmp.empty()) {
+		msg.str(L"");
+		return;
+	}
+	int length = tmp.length();
+	if (tmp[length - 2] == '\r' && tmp[length - 1] == '\n') {
+		tmp = tmp.substr(0, length - 2);
+	}
+
+	Util::sendPrivateMsg(playNum, Util::wstring2string(tmp).data());
+}
