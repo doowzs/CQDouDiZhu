@@ -31,7 +31,7 @@ Desk::Desk() {
 
 	this->whoIsWinner = 0;
 	this->multiple = 1;
-	this->basic = 15; //防止三个0分的玩积分还是0
+	this->basic = CONFIG_INIT_SCORE; //防止三个0分的玩积分还是0
 	this->turn = 0;
 	this->lastTime = 0; //最后一次发牌时间，记录用
 }
