@@ -44,7 +44,7 @@ void Desk::commandList()
 		<< L"9*. 明牌：显示自己的牌给所有玩家，明牌会导致积分翻倍，只能在发完牌后以及出牌之前使用。\r\n"
 		<< L"10*. 弃牌：放弃本局游戏，当地主或者两名农民弃牌游戏结束，弃牌农民玩家赢了不得分，输了双倍扣分" << "\r\n"
 		//<< L"11. 获取积分（已废弃）：获取积分，每天可获取200积分。" << "\r\n"
-		<< L"11. 我的信息：查看我的战绩与积分信息" << "\r\n"
+		<< L"11. 我的信息：查看我的战绩与积分信息（群聊私聊皆可）" << "\r\n"
 		<< L"12. 加入观战|观战：暗中观察" << "\r\n"
 		<< L"13. 退出观战：光明正大的看打牌" << "\r\n"
 		<< L"14*. 举报|挂机|AFK：超过60秒不出牌，可以举报，举报成功的奖励" << CONFIG_SURRENDER_PENALTY
@@ -52,7 +52,9 @@ void Desk::commandList()
 		<< L"A1. " << L"我是管理：绑定游戏管理员为当前发送消息的qq，管理员可使用管理命令。管理设置后不能更改" << "\r\n"
 		<< L"A2. " << L"重置斗地主：删除所有配置。重置后可重新设定管理员" << "\r\n"
 		<< L"A3. " << L"结束游戏[群号]：结束指定群号的游戏，比如：结束游戏123456" << "\r\n"
-		<< L"A4. " << L"设置积分[qq号]=[积分]：给指定qq分配积分，如：设置积分123456=-998"
+		<< L"A4. " << L"设置积分[qq号]=[积分]：给指定qq分配积分，如：设置积分123456=-998" << "\r\n"
+		<< L"A5. " << L"改变数据类型：切换“正式数据”与“测试数据”类型" << "\r\n"
+		<< L"A6. " << L"备份数据：你懂的，防止服务器爆炸"
 		;
 	this->breakLine();
 }
@@ -67,13 +69,16 @@ bool Desks::game(bool subType, int64_t deskNum, int64_t playNum, const char* msg
 
 	Desk *desk = casino.getOrCreatDesk(deskNum);
 
-	if (msg.find(L"斗地主命令") == 0 || msg.find(L"斗地主指令") == 0 || msg.find(L"斗地主操作") == 0) {
+	if (playNum = 80000000) {
+		desk->msg << L"匿名用户不能参加斗地主！";
+	}
+	else if (msg.find(L"斗地主命令") == 0 || msg.find(L"斗地主指令") == 0 || msg.find(L"斗地主操作") == 0) {
 		desk->commandList();
 	}
 	else if (msg.find(L"斗地主") == 0) {
 		desk->msg << L"斗地主 " << CONFIG_VERSION;
 		desk->breakLine();
-		desk->msg << L"数据库 " << Admin::readVersion() << L" UTC";
+		desk->msg << Admin::readDataType() << L" " << Admin::readVersion(); // << L" CST";
 		desk->breakLine();
 		desk->msg << L"源代码与更新履历：https://github.com/doowzs/CQDouDiZhu";
 		desk->breakLine();
@@ -134,9 +139,10 @@ bool Desks::game(bool subType, int64_t deskNum, int64_t playNum, const char* msg
 		desk->msg << L"打牌一次获得" << CONFIG_PLAY_BONUS
 			<< L"分，中途退出（弃牌）倒扣" << CONFIG_SURRENDER_PENALTY << L"分。";
 		desk->breakLine();
-		desk->msg << L"每局游戏的标准分计算方法为：初始值" << 15
+		desk->msg << L"每局游戏的标准分计算方法为：初始值" << CONFIG_INIT_SCORE
 			<< L"分，最高最低分玩家的积分差额每有" << 50
-			<< L"分，标准分加" << CONFIG_BOTTOM_SCORE << L"分。";
+			<< L"分，标准分加" << CONFIG_BOTTOM_SCORE << L"分，但标准分不会超过"
+			<< CONFIG_TOP_SCORE << L"分。";
 		desk->breakLine();
 		desk->msg << L"分数下限为负5亿，上限为正5亿。";
 		desk->breakLine();
@@ -176,6 +182,10 @@ bool Desks::game(int64_t playNum, const char * msgArray)
 	else if (msg == L"重置斗地主" || msg == L"初始化斗地主") {
 		result = Admin::resetGame(playNum);
 	}
+	else if (msg.find(L"改变数据") == 0) {
+		result = Admin::writeDataType();
+		Admin::getPlayerInfo(Admin::readAdmin());
+	}
 	else if (regex_match(msg, allotReg)) {
 		result = Admin::allotScoreTo(msg, playNum);
 	}
@@ -184,6 +194,13 @@ bool Desks::game(int64_t playNum, const char * msgArray)
 	}
 	else if (msg.find(L"结束游戏") == 0) {//结束游戏
 		result = Admin::gameOver(msg, playNum);
+	}
+	else if (msg == L"我的信息") {
+		Admin::getPlayerInfo(playNum);
+		return false;
+	}
+	else if (msg == L"备份数据") {
+		result = Admin::backupData(playNum);
 	}
 	else {
 		return false;
