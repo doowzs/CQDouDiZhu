@@ -34,7 +34,7 @@ static const int CONFIG_BOTTOM_SCORE = 3;
 static const int CONFIG_TOP_SCORE = 1000;
 static const int CONFIG_PLAY_BONUS = 0;
 static const int CONFIG_SURRENDER_PENALTY = 50;
-static const wstring CONFIG_VERSION = L"4.5.1 master 1802110043";
+static const wstring CONFIG_VERSION = L"4.5.2 dev 1802112125";
 
 static const wregex allotReg(L"设置积分(\\d+)=(\\d+)");
 static const wregex allotReg2(L"设置积分(\\d+)=-(\\d+)");

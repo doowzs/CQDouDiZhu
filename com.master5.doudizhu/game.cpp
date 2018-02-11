@@ -70,7 +70,8 @@ bool Desks::game(bool subType, int64_t deskNum, int64_t playNum, const char* msg
 	Desk *desk = casino.getOrCreatDesk(deskNum);
 
 	if (playNum == 80000000) {
-		desk->msg << L"匿名用户不能参加斗地主！";
+		//desk->msg << L"匿名用户不能参加斗地主！";
+		return false;
 	}
 	else if (msg.find(L"斗地主命令") == 0 || msg.find(L"斗地主指令") == 0 || msg.find(L"斗地主操作") == 0) {
 		desk->commandList();
