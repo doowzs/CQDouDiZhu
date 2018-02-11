@@ -7,6 +7,7 @@
 #include <sstream>
 #include <tchar.h>  
 #include <regex> 
+#include <thread>
 
 #include "landlords_classes.h"
 using namespace std;
@@ -16,7 +17,7 @@ Desk::Desk() {
 		this->cards[i] = cardDest[i];
 	}
 
-	this->state = 0;
+	this->state = STATE_WAIT;
 	this->lastPlayIndex = -1;//当前谁出得牌
 	this->currentPlayIndex = -1;//该谁出牌
 	this->bossIndex = -1;//谁是地主
@@ -87,7 +88,7 @@ void Desk::listPlayers(int type)
 	for (unsigned i = 0; i < this->players.size(); i++) {
 		this->msg << i + 1 << L"：";
 		if (hasType) {
-			this->msg << L"[" << (i == this->bossIndex && state == STATE_GAMEING ? L"地主" : L"农民") << L"]";
+			this->msg << L"[" << (i == this->bossIndex && state == STATE_GAMING ? L"地主" : L"农民") << L"]";
 		}
 
 		this->at(this->players[i]->number);
@@ -413,7 +414,13 @@ void Desk::shuffle() {
 void Desk::creataBoss() {
 	state = STATE_BOSSING;
 
-	this->msg << L"下面进入抢地主环节。";
+	//记录时间
+	time_t rawtime;
+	this->lastTime = time(&rawtime);
+	//防止bug
+	this->warningSent = false;
+
+	this->msg << L"下面进入抢地主环节，倒计时开始。";
 	this->breakLine();
 	this->msg << L"---------------";
 	this->breakLine();
@@ -437,6 +444,12 @@ void Desk::getBoss(int64_t playerNum)
 	int index = this->getPlayer(playerNum);
 	if (this->state == STATE_BOSSING && this->currentPlayIndex == index) {
 
+		//记录时间
+		time_t rawtime;
+		this->lastTime = time(&rawtime);
+		//防止提示后抢地主出现bug
+		this->warningSent = false;
+
 		this->bossIndex = index;
 		this->currentPlayIndex = index;
 		this->lastPlayIndex = index;
@@ -454,6 +467,12 @@ void Desk::dontBoss(int64_t playerNum)
 	if (this->state == STATE_BOSSING && this->currentPlayIndex == index) {
 
 		this->setNextPlayerIndex();
+
+		//记录时间
+		time_t rawtime;
+		this->lastTime = time(&rawtime);
+		//防止提示后不抢出现bug
+		this->warningSent = false;
 
 		if (this->currentPlayIndex == this->bossIndex && this->isSecondCallForBoss) {
 			this->msg << L"第2次抢地主失败，";
@@ -518,6 +537,12 @@ void Desk::sendBossCard()
 }
 
 void Desk::multipleChoice() {
+	//记录时间
+	time_t rawtime;
+	this->lastTime = time(&rawtime);
+	//防止bug
+	this->warningSent = false;
+
 	this->msg << L"抢地主环节结束，下面进入加倍环节。";
 	this->breakLine();
 	this->msg << L"---------------";
@@ -535,6 +560,12 @@ void Desk::getMultiple(int64_t playerNum)
 	int index = this->getPlayer(playerNum);
 	if (this->state == STATE_MULTIPLING && this->currentPlayIndex == index) {
 		this->multiple += 1;
+
+		//记录时间
+		time_t rawtime;
+		this->lastTime = time(&rawtime);
+		//防止提示后加倍出现bug
+		this->warningSent = false;
 
 		this->setNextPlayerIndex();
 
@@ -557,7 +588,7 @@ void Desk::getMultiple(int64_t playerNum)
 			this->breakLine();
 			for (unsigned i = 0; i < this->players.size(); i++) {
 				this->msg << i + 1 << L"：";
-				this->msg << L"[" << (i == this->bossIndex ? L"地主" : L"农民") << L"]"; //这里删除条件&& state == STATE_GAMEING 
+				this->msg << L"[" << (i == this->bossIndex ? L"地主" : L"农民") << L"]"; //这里删除条件&& state == STATE_GAMING 
 				this->at(this->players[i]->number);
 				this->msg << L"：" << static_cast<int>(this->players[i]->card.size());
 				this->breakLine();
@@ -596,6 +627,12 @@ void Desk::dontMultiple(int64_t playerNum)
 
 		this->setNextPlayerIndex();
 
+		//记录时间
+		time_t rawtime;
+		this->lastTime = time(&rawtime);
+		//防止提示后不加倍出现bug
+		this->warningSent = false;
+
 		if (this->currentPlayIndex == this->bossIndex && bossHasMultipled) {
 			this->at(this->players[index]->number);
 			this->msg << L"不要加倍。";
@@ -617,7 +654,7 @@ void Desk::dontMultiple(int64_t playerNum)
 			this->breakLine();
 			for (unsigned i = 0; i < this->players.size(); i++) {
 				this->msg << i + 1 << L"：";
-				this->msg << L"[" << (i == this->bossIndex ? L"地主" : L"农民") << L"]"; //这里删除条件&& state == STATE_GAMEING 
+				this->msg << L"[" << (i == this->bossIndex ? L"地主" : L"农民") << L"]"; //这里删除条件&& state == STATE_GAMING 
 				this->at(this->players[i]->number);
 				this->msg << L"：" << static_cast<int>(this->players[i]->card.size());
 				this->breakLine();
@@ -654,7 +691,7 @@ void Desk::play(int64_t playNum, wstring msg)
 	int length = msg.length();
 
 	if (playIndex == -1 || playIndex != this->currentPlayIndex
-		|| (!(this->state == STATE_GAMEING && this->turn > 0)
+		|| (!(this->state == STATE_GAMING && this->turn > 0)
 			&& !(this->state == STATE_READYTOGO && this->turn == 0))
 		|| length < 2) {
 		return;
@@ -700,7 +737,7 @@ void Desk::play(vector<wstring> list, int playIndex)
 
 	if (isCanWin) {
 		if (this->turn == 0) {
-			this->state = STATE_GAMEING;
+			this->state = STATE_GAMING;
 		}
 
 		//只有合法的出牌才能记录
@@ -711,9 +748,12 @@ void Desk::play(vector<wstring> list, int playIndex)
 		else {
 			this->farmCount++;
 		}
+
 		//记录出牌时间
 		time_t rawtime;
 		this->lastTime = time(&rawtime);
+		//防止提示后出牌出现bug
+		this->warningSent = false;
 
 		player->card = mycardTmp;
 		this->lastWeights = weights;
@@ -829,7 +869,7 @@ void Desk::play(vector<wstring> list, int playIndex)
 		this->breakLine();
 		for (unsigned i = 0; i < this->players.size(); i++) {
 			this->msg << i + 1 << L"：";
-			this->msg << L"[" << (i == this->bossIndex && state == STATE_GAMEING ? L"地主" : L"农民") << L"]";
+			this->msg << L"[" << (i == this->bossIndex && state == STATE_GAMING ? L"地主" : L"农民") << L"]";
 			this->at(this->players[i]->number);
 			this->msg << L"：" << static_cast<int>(this->players[i]->card.size());
 			this->breakLine();
@@ -850,7 +890,7 @@ void Desk::play(vector<wstring> list, int playIndex)
 
 void Desk::discard(int64_t playNum)
 {
-	if (this->currentPlayIndex != this->getPlayer(playNum) || this->state != STATE_GAMEING) {
+	if (this->currentPlayIndex != this->getPlayer(playNum) || this->state != STATE_GAMING) {
 		return;
 	}
 
@@ -862,6 +902,8 @@ void Desk::discard(int64_t playNum)
 	//记录过牌时间
 	time_t rawtime;
 	this->lastTime = time(&rawtime);
+	//防止提示后过牌出现bug
+	this->warningSent = false;
 
 	this->at(playNum);
 	this->msg << L"过牌，";
@@ -883,7 +925,7 @@ void Desk::surrender(int64_t playNum)
 	if (index == -1 || this->players[index]->isSurrender) {
 		return;
 	}
-	if (this->state != STATE_GAMEING) {
+	if (this->state != STATE_GAMING) {
 		this->at(playNum);
 		this->breakLine();
 		this->msg << L"当前游戏状态无法弃牌（投降）！任意出牌后方可弃牌。";
@@ -893,6 +935,8 @@ void Desk::surrender(int64_t playNum)
 	//记录弃牌时间
 	time_t rawtime;
 	this->lastTime = time(&rawtime);
+	//防止提示后弃牌出现bug
+	this->warningSent = false;
 
 	Player *player = this->players[index];
 
@@ -1046,6 +1090,11 @@ void Desks::gameOver(int64_t number)
 	if (index == -1) {
 		return;
 	}
+
+	//销毁挂机检测程序
+	casino.desks[index]->state = STATE_OVER;
+	casino.desks[index]->counter->join();
+
 	vector<Desk*>::iterator it = casino.desks.begin() + index;
 	casino.desks.erase(it); 
 	//更新数据库版本
@@ -1445,6 +1494,9 @@ void Desk::startGame() {
 	if (this->players.size() == 3 && this->state == STATE_WAIT) {
 		this->state = STATE_START;
 
+		//启动挂机检测程序
+		this->counter = new thread(&Desk::checkAFK, this);
+
 		int64_t maxScore = -500000001;
 		int64_t minScore = 500000001;
 		int64_t tempScore = 0;
@@ -1469,9 +1521,9 @@ void Desk::startGame() {
 
 		this->msg << L"游戏开始，桌号：" << this->number << L"。";
 		this->breakLine(); 
-		//重复提示，已删除
-		//this->msg << L"本局积分：" <<  this->basic*this->multiple;
-		//this->breakLine(); 
+		this->msg << L"游戏挂机检测时间：抢地主" << CONFIG_TIME_BOSS << L"秒，加倍" 
+			<< CONFIG_TIME_MULTIPLE << L"秒，出牌" << CONFIG_TIME_GAME << L"秒，";
+		this->breakLine();
 
 		//this->msg << L"准备环节可以进行[明牌]操作，明牌会使积分倍数 + 2，请谨慎操作！";
 		//this->breakLine();
@@ -1488,10 +1540,7 @@ void Desk::startGame() {
 	}
 	else {
 		if (this->state >= STATE_BOSSING) {
-			//启动游戏往往会多次发送出发提示，减少多次无效提示
-			//this->msg << L"已经开始游戏。";
-			//this->breakLine();
-			//this->listPlayers(1);
+			//启动游戏往往会多次发送出发提示，此处不再做无效提示
 			return;
 		}
 		else {
@@ -1521,11 +1570,11 @@ void Desk::AFKHandle(int64_t playNum) {
 	time_t rawtime;
 	int64_t timeNow = time(&rawtime);
 
-	if (this->state < STATE_GAMEING) {
+	if (this->state < STATE_BOSSING) {
 		return;
 	}
 
-	if (timeNow - this->lastTime > 60) {
+	if (timeNow - this->lastTime > 50) {
 		this->at(playNum);
 		this->breakLine();
 		this->msg << L"举报成功。";
@@ -1555,6 +1604,123 @@ void Desk::AFKHandle(int64_t playNum) {
 		this->breakLine();
 		this->msg << L"举报失败，";
 		this->at(this->players[this->currentPlayIndex]->number);
-		this->msg << L"的剩余出牌时间为" << this->lastTime + 60 - timeNow << L"秒。";
+		this->msg << L"的剩余出牌时间为" << this->lastTime + CONFIG_TIME_GAME - timeNow << L"秒。";
+	}
+}
+
+void Desk::checkAFK() {
+	time_t rawtime;
+	int64_t timeNow = time(&rawtime);
+
+	while (this->state < STATE_BOSSING) {
+		std::this_thread::sleep_for(std::chrono::milliseconds(500));
+		;
+	}
+
+	this->warningSent = false;
+
+	while (this->state == STATE_BOSSING) {
+		std::this_thread::sleep_for(std::chrono::milliseconds(500));
+		timeNow = time(&rawtime);
+
+		//this->msg << L"测试信息：";
+		//this->at(this->players[this->currentPlayIndex]->number);
+		//this->msg << L"的剩余出牌时间为" << this->lastTime + CONFIG_TIME_GAME - timeNow << L"秒。";
+
+		if (timeNow - this->lastTime > CONFIG_TIME_BOSS) {
+			this->warningSent = false;
+			Admin::addScore(this->players[this->currentPlayIndex]->number, -CONFIG_SURRENDER_PENALTY);
+
+			this->at(this->players[this->currentPlayIndex]->number);
+			this->msg << L"[" << L"挂机-" << CONFIG_SURRENDER_PENALTY << L"分]";
+			this->breakLine();
+			this->msg << L"---------------";
+			this->breakLine();
+			//this->setNextPlayerIndex();
+			//this->lastTime = timeNow;
+
+			this->dontBoss(this->players[this->currentPlayIndex]->number);
+		}
+		else if (!this->warningSent && timeNow - this->lastTime > CONFIG_TIME_BOSS - CONFIG_TIME_WARNING) {
+			this->warningSent = true;
+			this->at(this->players[this->currentPlayIndex]->number);
+			this->msg << L"抢地主时间剩余" << CONFIG_TIME_WARNING << L"秒。";
+			this->breakLine();
+		}
+
+		this->sendMsg(this->subType);
+	}
+
+	//防止提示后抢地主出现bug
+	this->warningSent = false;
+
+	while (this->state == STATE_MULTIPLING) {
+		std::this_thread::sleep_for(std::chrono::milliseconds(500));
+		timeNow = time(&rawtime);
+
+		//this->msg << L"测试信息：";
+		//this->at(this->players[this->currentPlayIndex]->number);
+		//this->msg << L"的剩余出牌时间为" << this->lastTime + CONFIG_TIME_GAME - timeNow << L"秒。";
+
+		if (timeNow - this->lastTime > CONFIG_TIME_MULTIPLE) {
+			this->warningSent = false;
+			Admin::addScore(this->players[this->currentPlayIndex]->number, -CONFIG_SURRENDER_PENALTY);
+
+			this->at(this->players[this->currentPlayIndex]->number);
+			this->msg << L"[" << L"挂机-" << CONFIG_SURRENDER_PENALTY << L"分]";
+			this->breakLine();
+			this->msg << L"---------------";
+			this->breakLine();
+			//this->setNextPlayerIndex();
+			//this->lastTime = timeNow;
+
+			this->dontMultiple(this->players[this->currentPlayIndex]->number);
+		}
+		else if (!this->warningSent && timeNow - this->lastTime > CONFIG_TIME_MULTIPLE - CONFIG_TIME_WARNING) {
+			this->warningSent = true;
+			this->at(this->players[this->currentPlayIndex]->number);
+			this->msg << L"加倍选择时间剩余" << CONFIG_TIME_WARNING << L"秒。";
+			this->breakLine();
+		}
+
+		this->sendMsg(this->subType);
+	}
+
+	//防止提示后加倍出现bug
+	this->warningSent = false;
+
+	while (this->state == STATE_READYTOGO || this->state == STATE_GAMING) {
+		std::this_thread::sleep_for(std::chrono::milliseconds(500));
+		timeNow = time(&rawtime);
+
+		//this->msg << L"测试信息：";
+		//this->at(this->players[this->currentPlayIndex]->number);
+		//this->msg << L"的剩余出牌时间为" << this->lastTime + CONFIG_TIME_GAME - timeNow << L"秒。";
+
+		if (timeNow - this->lastTime > CONFIG_TIME_GAME) {
+			this->warningSent = false;
+			Admin::addScore(this->players[this->currentPlayIndex]->number, -CONFIG_SURRENDER_PENALTY);
+
+			this->at(this->players[this->currentPlayIndex]->number);
+			this->msg << L"[" << L"挂机-" << CONFIG_SURRENDER_PENALTY << L"分]";
+			this->breakLine();
+			this->msg << L"---------------";
+			this->breakLine();
+			this->setNextPlayerIndex();
+			this->lastTime = timeNow;
+
+			this->msg << L"现在轮到";
+			this->at(this->players[this->currentPlayIndex]->number);
+			this->msg << L"出牌。";
+			this->breakLine();
+		}
+		else if (!this->warningSent && timeNow - this->lastTime > CONFIG_TIME_GAME - CONFIG_TIME_WARNING) {
+			this->warningSent = true;
+			this->at(this->players[this->currentPlayIndex]->number);
+			this->msg << L"出牌时间剩余" << CONFIG_TIME_WARNING << L"秒。";
+			this->breakLine();
+		}
+
+		this->sendMsg(this->subType);
 	}
 }

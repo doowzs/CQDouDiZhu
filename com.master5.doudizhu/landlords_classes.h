@@ -7,6 +7,7 @@
 #include <sstream>
 #include <tchar.h>  
 #include <regex> 
+#include <thread>
 using namespace std;
 
 static const wstring  cardDest[54] = {
@@ -24,7 +25,8 @@ static const int STATE_START = 1;
 static const int STATE_BOSSING = 2;
 static const int STATE_MULTIPLING = 3;
 static const int STATE_READYTOGO = 4;
-static const int STATE_GAMEING = 5;
+static const int STATE_GAMING = 5;
+static const int STATE_OVER = 6;
 
 static const wstring CONFIG_PATH = L".\\app\\com.auntspecial.doudizhu\\config.ini";
 static const wstring CONFIG_DIR = L".\\app\\com.auntspecial.doudizhu\\";
@@ -33,11 +35,16 @@ static const int CONFIG_INIT_SCORE = 150;
 static const int CONFIG_BOTTOM_SCORE = 3;
 static const int CONFIG_TOP_SCORE = 1000;
 static const int CONFIG_PLAY_BONUS = 0;
-static const int CONFIG_SURRENDER_PENALTY = 50;
-static const wstring CONFIG_VERSION = L"4.5.2 dev 1802112125";
+static const int CONFIG_SURRENDER_PENALTY = 150;
+static const int CONFIG_TIME_BOSS = 30;
+static const int CONFIG_TIME_MULTIPLE = 30;
+static const int CONFIG_TIME_GAME = 60;
+static const int CONFIG_TIME_WARNING = 15;
+static const wstring CONFIG_VERSION = L"5.0.0 master 201802120012";
 
 static const wregex allotReg(L"设置积分(\\d+)=(\\d+)");
 static const wregex allotReg2(L"设置积分(\\d+)=-(\\d+)");
+static const wregex getInfoReg(L"查询积分(\\d+)");
 static const wregex numberReg(L"\\d+");
 
 class Util {
@@ -137,6 +144,7 @@ public:
 	int64_t number;
 	vector<Player*> players;
 	vector<Watcher*> watchers;	//观察者队列
+	thread *counter;	//倒计时器
 
 	int whoIsWinner;
 	int state;
@@ -144,6 +152,9 @@ public:
 	int currentPlayIndex;	//该谁出牌
 	int bossIndex;	//谁是地主
 	bool isSecondCallForBoss;	//第二次叫地主
+	bool warningSent;	//倒计时警告消息已发送
+
+	bool subType;	//存储消息类型
 
 	int bossCount;//记录出牌次数，检测春天
 	int farmCount;
@@ -206,6 +217,7 @@ public:
 	int getWatcher(int64_t number);//按qq号获得玩家得索引
 
 	void AFKHandle(int64_t playNum);
+	void checkAFK();
 };
 
 class Desks {
