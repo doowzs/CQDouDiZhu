@@ -1640,15 +1640,19 @@ void Desk::checkAFK() {
 			//this->lastTime = timeNow;
 
 			this->dontBoss(this->players[this->currentPlayIndex]->number);
+
+			this->sendMsg(this->subType);
+			this->msg.str(L"");
 		}
 		else if (!this->warningSent && timeNow - this->lastTime > CONFIG_TIME_BOSS - CONFIG_TIME_WARNING) {
 			this->warningSent = true;
 			this->at(this->players[this->currentPlayIndex]->number);
 			this->msg << L"抢地主时间剩余" << CONFIG_TIME_WARNING << L"秒。";
 			this->breakLine();
-		}
 
-		this->sendMsg(this->subType);
+			this->sendMsg(this->subType);
+			this->msg.str(L"");
+		}
 	}
 
 	//防止提示后抢地主出现bug
@@ -1675,15 +1679,19 @@ void Desk::checkAFK() {
 			//this->lastTime = timeNow;
 
 			this->dontMultiple(this->players[this->currentPlayIndex]->number);
+
+			this->sendMsg(this->subType);
+			this->msg.str(L"");
 		}
 		else if (!this->warningSent && timeNow - this->lastTime > CONFIG_TIME_MULTIPLE - CONFIG_TIME_WARNING) {
 			this->warningSent = true;
 			this->at(this->players[this->currentPlayIndex]->number);
 			this->msg << L"加倍选择时间剩余" << CONFIG_TIME_WARNING << L"秒。";
 			this->breakLine();
-		}
 
-		this->sendMsg(this->subType);
+			this->sendMsg(this->subType);
+			this->msg.str(L"");
+		}
 	}
 
 	//防止提示后加倍出现bug
@@ -1713,14 +1721,18 @@ void Desk::checkAFK() {
 			this->at(this->players[this->currentPlayIndex]->number);
 			this->msg << L"出牌。";
 			this->breakLine();
+
+			this->sendMsg(this->subType);
+			this->msg.str(L"");
 		}
 		else if (!this->warningSent && timeNow - this->lastTime > CONFIG_TIME_GAME - CONFIG_TIME_WARNING) {
 			this->warningSent = true;
 			this->at(this->players[this->currentPlayIndex]->number);
 			this->msg << L"出牌时间剩余" << CONFIG_TIME_WARNING << L"秒。";
 			this->breakLine();
-		}
 
-		this->sendMsg(this->subType);
+			this->sendMsg(this->subType);
+			this->msg.str(L"");
+		}
 	}
 }

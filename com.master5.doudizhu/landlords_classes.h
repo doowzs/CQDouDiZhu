@@ -40,7 +40,7 @@ static const int CONFIG_TIME_BOSS = 30;
 static const int CONFIG_TIME_MULTIPLE = 30;
 static const int CONFIG_TIME_GAME = 60;
 static const int CONFIG_TIME_WARNING = 15;
-static const wstring CONFIG_VERSION = L"5.0.0 master 201802120012";
+static const wstring CONFIG_VERSION = L"5.0.1 master 201802120029";
 
 static const wregex allotReg(L"设置积分(\\d+)=(\\d+)");
 static const wregex allotReg2(L"设置积分(\\d+)=-(\\d+)");
