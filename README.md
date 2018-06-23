@@ -1,3 +1,8 @@
+# Notice
+This program is not good in the aspect of user interaction and maintance. Code refactoring is suggested.
+
+# Original description
+
 简介
 ----
 使用 Visual C++ 编写酷Q应用。
